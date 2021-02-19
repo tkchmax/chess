@@ -1,6 +1,6 @@
 #pragma once
-#ifndef _GAME_
-#define _GAME_
+#ifndef _POSITION_
+#define _POSITION_
 
 #include "headers.h"
 #include "Figure.h"
@@ -15,23 +15,20 @@ public:
 	vector<vector<shared_ptr<Figure>>> getFigures();
 	vector<vector<int>> getFigureFromCoord();
 
-	U64 getWhiteFiguresBoard();
-	U64 getBlackFiguresBoard();
+	U64 getFigureBoard(int color);
 	U64 getAllFiguresBoard();
 
-	MoveList getMovesList(int color);
+	bool isMoveLegal(int move);
+	U64 getAtackRays(int color);
 
 	void setFigures(vector<vector<shared_ptr<Figure>>> figures);
 	void setFigureFromCoord(vector<vector<int>> figuresFromCoord);
 
-protected:
 	MoveList getFigureMoveList(int figure, int color);
 
 private:
 	vector<vector<shared_ptr<Figure>>> figures_;
 	vector<vector<int>> figureFromCoord_;
-	MoveList whiteMovesList_;
-	MoveList blackMovesList_;
 };
 #endif // !_GAME_
 

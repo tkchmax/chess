@@ -1,6 +1,4 @@
 #include "Position.h"
-vector<vector<U64>> rays(8, vector<U64>(64));
-
 Position::Position()
 {
 	figures_ = vector<vector<shared_ptr<Figure>>>(2, vector<shared_ptr<Figure>>(7));
@@ -38,12 +36,6 @@ Position::Position()
 		}
 	}
 
-	for (int type = PAWN; type <= KING; ++type)
-	{
-		whiteMovesList_ += getFigureMoveList(type, WHITE);
-		blackMovesList_ += getFigureMoveList(type, BLACK);
-	}
-
 }
 
 vector<vector<shared_ptr<Figure>>> Position::getFigures()
@@ -51,28 +43,16 @@ vector<vector<shared_ptr<Figure>>> Position::getFigures()
 	return figures_;
 }
 
-U64 Position::getWhiteFiguresBoard()
+U64 Position::getFigureBoard(int color)
 {
-	U64 board = figures_[WHITE][PAWN]->getBoard() | figures_[WHITE][KNIGHT]->getBoard() | figures_[WHITE][BISHOP]->getBoard() | figures_[WHITE][ROOK]->getBoard()
-		| figures_[WHITE][QUEEN]->getBoard() | figures_[WHITE][KING]->getBoard();
-	return board;
-}
-
-U64 Position::getBlackFiguresBoard()
-{
-	U64 board = figures_[BLACK][PAWN]->getBoard() | figures_[BLACK][KNIGHT]->getBoard() | figures_[BLACK][BISHOP]->getBoard() | figures_[BLACK][ROOK]->getBoard()
-		| figures_[BLACK][QUEEN]->getBoard() | figures_[BLACK][KING]->getBoard();
+	U64 board = figures_[color][PAWN]->getBoard() | figures_[color][KNIGHT]->getBoard() | figures_[color][BISHOP]->getBoard() | figures_[color][ROOK]->getBoard()
+		| figures_[color][QUEEN]->getBoard() | figures_[color][KING]->getBoard();
 	return board;
 }
 
 U64 Position::getAllFiguresBoard()
 {
-	return getWhiteFiguresBoard() | getBlackFiguresBoard();
-}
-
-MoveList Position::getMovesList(int color)
-{
-	return (color == WHITE ? whiteMovesList_ : blackMovesList_);
+	return getFigureBoard(WHITE) | getFigureBoard(BLACK);
 }
 
 MoveList Position::getFigureMoveList(int figure, int color)
@@ -83,6 +63,21 @@ MoveList Position::getFigureMoveList(int figure, int color)
 vector<vector<int>> Position::getFigureFromCoord()
 {
 	return figureFromCoord_;
+}
+
+U64 Position::getAtackRays(int color)
+{
+	int opColor = (color == WHITE ? BLACK : WHITE);
+	U64 blockers = getFigureBoard(color);
+	U64 opposite = getFigureBoard(opColor);
+
+	vector<shared_ptr<Figure>> t_board = figures_[color];
+	U64 rays = 0;
+	
+	for (int type = PAWN; type <= KING; ++type)
+		rays |= figures_[color][type]->getAttackBoard(blockers, opposite);
+
+	return rays;
 }
 
 void Position::setFigures(vector<vector<shared_ptr<Figure>>> figures)

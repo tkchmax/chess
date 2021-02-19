@@ -25,11 +25,7 @@ void ShowBits(U64 bb)
 
 int main()
 {
-
 	Position p;
-	MoveList mv = p.getMovesList(BLACK);
-	cout << mv;
-
-
+	ShowBits(p.getAtackRays(BLACK));
 }
 

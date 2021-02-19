@@ -117,6 +117,8 @@ ostream& operator<<(ostream& out, const MoveList& list)
 	{
 		ShowListItem(list.silent[i]);
 		out << endl;
+
+
 	}
 	for (int j = 0; j <= list.cEnd; ++j)
 	{

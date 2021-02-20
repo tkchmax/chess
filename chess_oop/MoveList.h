@@ -11,6 +11,7 @@ struct RawMoves
 		silents = 0;
 		takes = 0;
 	}
+	vector<int> getSilentMoves();
 };
 
 struct MoveList
@@ -25,7 +26,6 @@ struct MoveList
 	friend void operator+=(MoveList& lsh, const MoveList& rsh);
 	friend ostream& operator<<(ostream& out, const MoveList& list);
 
-	void ShowMoveList(MoveList mv, int type=10);
 	void add(vector<vector<int>> figureFromCoord, RawMoves moves, int from, int color, int figure);
 };
 

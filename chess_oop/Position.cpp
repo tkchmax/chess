@@ -22,7 +22,7 @@ Position::Position()
 	figures_[WHITE][KING] = shared_ptr<King>(new King(WHITE));
 	figures_[BLACK][KING] = shared_ptr<King>(new King(BLACK));
 
-	U64 t_board=0;
+	U64 t_board = 0;
 	for (int color = 0; color < 2; ++color)
 	{
 		for (int type = 1; type < 7; ++type)
@@ -43,7 +43,7 @@ vector<vector<shared_ptr<Figure>>> Position::getFigures()
 	return figures_;
 }
 
-U64 Position::getFigureBoard(int color)
+U64 Position::getSideBoard(int color)
 {
 	U64 board = figures_[color][PAWN]->getBoard() | figures_[color][KNIGHT]->getBoard() | figures_[color][BISHOP]->getBoard() | figures_[color][ROOK]->getBoard()
 		| figures_[color][QUEEN]->getBoard() | figures_[color][KING]->getBoard();
@@ -52,7 +52,7 @@ U64 Position::getFigureBoard(int color)
 
 U64 Position::getAllFiguresBoard()
 {
-	return getFigureBoard(WHITE) | getFigureBoard(BLACK);
+	return getSideBoard(WHITE) | getSideBoard(BLACK);
 }
 
 MoveList Position::getFigureMoveList(int figure, int color)
@@ -60,20 +60,51 @@ MoveList Position::getFigureMoveList(int figure, int color)
 	return figures_[color][figure]->getAvailibleMoves(*this);
 }
 
+U64 Position::getFigureBoard(int type, int color)
+{
+	return figures_[color][type]->getBoard();
+}
+
+int Position::getFigureOnSquare(int square)
+{
+	int wFigure = figureFromCoord_[WHITE][square];
+	int bFigure = figureFromCoord_[BLACK][square];
+	
+	if (wFigure == 0)
+		return bFigure;
+	return wFigure;
+}
+
 vector<vector<int>> Position::getFigureFromCoord()
 {
 	return figureFromCoord_;
 }
 
+bool Position::isMoveLegal(int move)
+{
+	Position testPosition(*this);
+
+	int move_figure = READ_FIGURE(move);
+	int move_from = READ_FROM(move);
+	int move_to = READ_TO(move);
+	int move_color = READ_COLOR(move);
+
+	testPosition.figures_[move_color][move_figure]->moveFigure(move_from, move_to);
+
+	if (testPosition.isKingAttacked(move_color))
+		return false;
+	return true;
+}
+
 U64 Position::getAtackRays(int color)
 {
 	int opColor = (color == WHITE ? BLACK : WHITE);
-	U64 blockers = getFigureBoard(color);
-	U64 opposite = getFigureBoard(opColor);
+	U64 blockers = getSideBoard(color);
+	U64 opposite = getSideBoard(opColor);
 
 	vector<shared_ptr<Figure>> t_board = figures_[color];
 	U64 rays = 0;
-	
+
 	for (int type = PAWN; type <= KING; ++type)
 		rays |= figures_[color][type]->getAttackBoard(blockers, opposite);
 
@@ -88,5 +119,14 @@ void Position::setFigures(vector<vector<shared_ptr<Figure>>> figures)
 void Position::setFigureFromCoord(vector<vector<int>> figureFromCoord)
 {
 	figureFromCoord_ = figureFromCoord;
+}
+
+bool Position::isKingAttacked(int color)
+{
+	int oppositeColor = (color == WHITE ? BLACK : WHITE);
+	U64 attackers = getAtackRays(oppositeColor);
+	if (attackers & figures_[color][KING]->getBoard())
+		return true;
+	return false;
 }
 

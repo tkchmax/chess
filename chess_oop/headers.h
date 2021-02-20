@@ -55,8 +55,13 @@ typedef unsigned long long U64;
 #define MOVE_TYPE_2SQUARE 4
 #define MOVE_TYPE_CHECK 5
 #define MOVE_TYPE_PAWNTRANSFORM 6
+#define MOVE_TYPE_PAWNTRANSFORM_TAKE 7
+#define PAWN_TO_KNIGHT 8
+#define PAWN_TO_BISHOP 9
+#define PAWN_TO_ROOK 10
+#define PAWN_TO_QUEEN 11
 
-//гюохяшбюел хмтнплюжхч н унде б вхякн
+//Write-Read information about move
 #define WRITE_FROM(from,num) (num|from)
 #define WRITE_TO(to,num) (num|(to<<6))
 #define WRITE_FIGURE(figure,num) (num|(figure<<12))

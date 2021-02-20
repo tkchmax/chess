@@ -15,8 +15,9 @@ public:
 	vector<vector<shared_ptr<Figure>>> getFigures();
 	vector<vector<int>> getFigureFromCoord();
 
-	U64 getFigureBoard(int color);
+	U64 getSideBoard(int color);
 	U64 getAllFiguresBoard();
+
 
 	bool isMoveLegal(int move);
 	U64 getAtackRays(int color);
@@ -24,9 +25,15 @@ public:
 	void setFigures(vector<vector<shared_ptr<Figure>>> figures);
 	void setFigureFromCoord(vector<vector<int>> figuresFromCoord);
 
-	MoveList getFigureMoveList(int figure, int color);
+	bool isKingAttacked(int color);
 
-private:
+	MoveList getFigureMoveList(int figure, int color);
+	U64 getFigureBoard(int figure, int color);
+
+	int getFigureOnSquare(int square);
+
+
+protected:
 	vector<vector<shared_ptr<Figure>>> figures_;
 	vector<vector<int>> figureFromCoord_;
 };

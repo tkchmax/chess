@@ -9,13 +9,13 @@
 
 class Position;
 
-void initializeRays();
+void _initializeRays();
 
 class Figure
 {
 public:
-	virtual MoveList getAvailibleMoves(Position& position) = 0;
 	virtual RawMoves getMoveBoards(int square, U64 blockers, U64 opposite) = 0;
+	virtual MoveList getAvailibleMoves(Position& position);
 	virtual U64 getAttackBoard(U64 blockers, U64 opposite);
 
 	void setBoard(U64 board);
@@ -26,6 +26,9 @@ public:
 	U64 getBoard();
 	U64 getColor();
 
+	bool moveFigure(int old_square, int new_square);
+	bool removePiece(int square);
+	bool setFigureOnSquare(int square);
 	
 protected:
 	U64 board_;
@@ -41,6 +44,8 @@ public:
 	RawMoves getMoveBoards(int square, U64 blockers, U64 opposite) override;
 	MoveList getAvailibleMoves(Position& position) override;
 	U64 getAttackBoard(U64 blockers, U64 opposite) override;
+private:
+	bool _isPawnTransformMove(int move);
 };
 
 class Knight : public Figure
@@ -48,7 +53,6 @@ class Knight : public Figure
 public:
 	Knight(int color);
 	RawMoves getMoveBoards(int square, U64 blockers, U64 opposite) override;
-	MoveList getAvailibleMoves(Position& position) override;
 
 };
 
@@ -85,12 +89,9 @@ class King : public Figure
 {
 public:
 	King(int color);
+
 	RawMoves getMoveBoards(int square, U64 blockers, U64 opposite) override;
 	MoveList getAvailibleMoves(Position& position) override;
-
-private:
-	bool isChecked;
-	bool isMoved;
 
 
 }; 

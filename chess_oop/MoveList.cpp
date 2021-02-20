@@ -199,3 +199,7 @@ void operator+=(MoveList & lsh, const MoveList & rsh)
 		lsh += rsh.capture[j];
 }
 
+vector<int> RawMoves::getSilentMoves()
+{
+	return vector<int>();
+}

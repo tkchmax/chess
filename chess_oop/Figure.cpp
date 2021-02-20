@@ -10,7 +10,7 @@ U64 _hOut(U64 bb)
 {
 	return(bb >> 1)& NOT_H_FILE;
 }
-void initializeRays()
+void _initializeRays()
 {
 
 	U64 north = 0x0101010101010100;
@@ -101,6 +101,59 @@ void initializeRays()
 	}
 }
 
+
+MoveList Figure::getAvailibleMoves(Position& position)
+{
+	MoveList list;
+
+	U64 board = board_;
+
+	U64 blockers = getBlockerPieces(position);
+	U64 opposite = getOppositePieces(position);
+
+	RawMoves moves;
+	RawMoves t_moves;
+
+	int from;
+	int to;
+	while (board)
+	{
+		from = BitScanForward(board);
+		t_moves = getMoveBoards(from, blockers, opposite);
+
+		U64 silentMoves = t_moves.silents;
+		U64 captureMoves = t_moves.takes;
+
+		int move;
+
+		while (silentMoves)
+		{
+			to = BitScanForward(silentMoves);
+
+			move = CreateListItem(from, to, PAWN, 0, MOVE_TYPE_SILENT, color_); 
+			if (position.isMoveLegal(move))
+				list += move;
+
+			silentMoves &= silentMoves - 1;
+		}
+		int capture;
+		while (captureMoves)
+		{
+			to = BitScanForward(captureMoves);
+			capture = position.getFigureOnSquare(to);
+
+			move = CreateListItem(from, to, PAWN, capture, MOVE_TYPE_TAKE, color_);
+			if (position.isMoveLegal(move))
+				list += move;
+
+			captureMoves &= captureMoves - 1;
+		}
+
+		board &= board - 1;
+	}
+	return list;
+}
+
 U64 Figure::getAttackBoard(U64 blockers, U64 opposite)
 {
 	U64 attacks = 0;
@@ -129,13 +182,13 @@ void Figure::setColor(int color)
 
 U64 Figure::getBlockerPieces(Position& position)
 {
-	U64 blockers = (color_ == WHITE ? position.getFigureBoard(WHITE) : position.getFigureBoard(BLACK));
+	U64 blockers = (color_ == WHITE ? position.getSideBoard(WHITE) : position.getSideBoard(BLACK));
 	return blockers;
 }
 
 U64 Figure::getOppositePieces(Position& position)
 {
-	U64 opposite = (color_ == WHITE ? position.getFigureBoard(BLACK) : position.getFigureBoard(WHITE));
+	U64 opposite = (color_ == WHITE ? position.getSideBoard(BLACK) : position.getSideBoard(WHITE));
 	return opposite;
 }
 
@@ -149,46 +202,38 @@ U64 Figure::getColor()
 	return color_;
 }
 
+bool Figure::moveFigure(int old_coordinates, int new_coordinates)
+{
+	bool isFigureExist = (1ULL << old_coordinates) & board_;
+	if (!isFigureExist)
+		return false;
 
-//U64 Figure::getAtackRays(int color)
-//{
-	//int opColor = (color == WHITE ? BLACK : WHITE);
-	//U64 blockers = figures[color][QUEEN] | figures[color][ROOK] | figures[color][BISHOP] | figures[color][KNIGHT] | figures[color][PAWN] | figures[color][KING];
-	//U64 attackedFigures = figures[opColor][QUEEN] | figures[opColor][ROOK] | figures[opColor][BISHOP] | figures[opColor][KNIGHT] | figures[opColor][PAWN] | figures[opColor][KING];
+	U64 newBoard = ~(1ULL << old_coordinates) & board_ | (1ULL << new_coordinates);
+	board_ = newBoard;
+	return true;
+}
 
-	//vector<U64> bb = figures[color];
-	//U64 rays = 0;
+bool Figure::removePiece(int square)
+{
+	bool isFigureOnSquare = (1ULL << square) & board_;
+	if (isFigureOnSquare)
+	{
+		board_ &= ~(1ULL << square);
+		return true;
+	}
+	return false;
 
-	//rays |= GetPawnCaptureMoves(bb[PAWN], color);
+}
 
-	//for (int fiure_type = 1; figure_type < 7; ++figure_type)
-	//{
-	//	while (bb[figure_type]) {
-	//		int figure = BitScanForward(bb[figure_type]);
-	//		switch (figure_type)
-	//		{
-	//		case KING:
-	//			rays |= GetKingMoves(figure, blockers, attackedFigures, MOVE_TYPE_SILENT);
-	//			break;
-	//		case QUEEN:
-	//			rays |= GetQueenMoves(figure, blockers, attackedFigures, MOVE_TYPE_SILENT);
-	//			break;
-	//		case ROOK:
-	//			rays |= GetRookMoves(figure, blockers, attackedFigures, MOVE_TYPE_SILENT);
-	//			break;
-	//		case BISHOP:
-	//			rays |= GetBishopMoves(figure, blockers, attackedFigures, MOVE_TYPE_SILENT);
-	//			break;
-	//		case KNIGHT:
-	//			rays |= GetKnightMoves(figure, blockers, attackedFigures, MOVE_TYPE_SILENT);
-	//			break;
-	//		}
-	//		bb[figure_type] &= bb[figure_type] - 1;
-	//	}
-	//}
-	//return rays;
-//}
+bool Figure::setFigureOnSquare(int square)
+{
+	bool isFigureAlreadyOnSquare = (1ULL << square) & board_;
+	if (isFigureAlreadyOnSquare)
+		return false;
+	board_ |= (1ULL << square);
+	return true;
 
+}
 
 
 Pawn::Pawn(int color)
@@ -197,7 +242,7 @@ Pawn::Pawn(int color)
 	board_ = (color == WHITE ? WHITEPAWN_STARTPOSITION : BLACKPAWN_STARTPOSITION);
 }
 
-RawMoves Pawn::getMoveBoards(int square,  U64 blockers, U64 opposite)
+RawMoves Pawn::getMoveBoards(int square, U64 blockers, U64 opposite)
 {
 	RawMoves moves;
 
@@ -209,7 +254,7 @@ RawMoves Pawn::getMoveBoards(int square,  U64 blockers, U64 opposite)
 	U64 twoSquareMove = 0;
 	U64 leftAttack = 0;
 	U64 rightAttack = 0;
-	
+
 	if (color_ == WHITE)
 	{
 
@@ -251,12 +296,70 @@ MoveList Pawn::getAvailibleMoves(Position& position)
 	RawMoves moves;
 	RawMoves t_moves;
 
-	int square;
+	const U64 TRANSFORM_RANK = (color_ == WHITE ? BLACKPAWN_STARTPOSITION >> 8 : WHITEPAWN_STARTPOSITION << 8);
+
+	int from;
+	int to;
+	int move;
+	U64 silentMoves=0, captureMoves=0;
+	bool isTransformation;
 	while (pawns)
 	{
-		square = BitScanForward(pawns);
-		t_moves = getMoveBoards(square, blockers, opposite);
-		list.add(figureFromCoord, t_moves, square, color_, PAWN);
+		from = BitScanForward(pawns);
+		t_moves = getMoveBoards(from, blockers, opposite);
+
+		 silentMoves = t_moves.silents;
+		 captureMoves = t_moves.takes;
+		 isTransformation;
+
+		 move = 0;
+		while (silentMoves)
+		{
+			to = BitScanForward(silentMoves);
+			isTransformation = (1ULL << to) & TRANSFORM_RANK;
+			if (isTransformation)
+			{
+				for (int i = KNIGHT; i <= QUEEN; ++i)
+				{
+					move = CreateListItem(from, to, PAWN, 0, PAWN_TO_KNIGHT + i - KNIGHT, color_);
+					if (position.isMoveLegal(move))
+						list += move;
+				}
+			}
+			else {
+				move = CreateListItem(from, to, PAWN, 0, MOVE_TYPE_SILENT, color_);
+				if (position.isMoveLegal(move))
+					list += move;
+			}
+
+			silentMoves &= silentMoves - 1;
+		}
+
+		int capture;
+		while (captureMoves)
+		{
+			to = BitScanForward(captureMoves);
+			capture = position.getFigureOnSquare(to);
+			isTransformation = (1ULL << to) & TRANSFORM_RANK;
+			if (isTransformation)
+			{
+				for (int i = KNIGHT; i <= QUEEN; ++i)
+				{
+					move = CreateListItem(from, to, PAWN, capture, PAWN_TO_KNIGHT + i - KNIGHT, color_);
+					if (position.isMoveLegal(move))
+						list += move;
+				}
+			}
+			else
+			{
+				move = CreateListItem(from, to, PAWN, capture, MOVE_TYPE_TAKE, color_);
+				if (position.isMoveLegal(move))
+					list += move;
+			}
+
+			captureMoves &= captureMoves - 1;
+
+		}
 
 		pawns &= pawns - 1;
 	}
@@ -269,6 +372,11 @@ U64 Pawn::getAttackBoard(U64 blockers, U64 opposite)
 	U64 delTwoSquareMoves_mask = ~(color_ == WHITE ? WHITEPAWN_STARTPOSITION << 16 : BLACKPAWN_STARTPOSITION >> 16);
 
 	return attacks & delTwoSquareMoves_mask;
+}
+
+bool Pawn::_isPawnTransformMove(int move)
+{
+	return false;
 }
 
 
@@ -298,31 +406,30 @@ RawMoves Knight::getMoveBoards(int square, U64 blockers, U64 opposite)
 	return moves;
 }
 
-MoveList Knight::getAvailibleMoves(Position& position)
-{
-	MoveList list;
-	RawMoves rawMoves;
-
-	U64 knights = board_;
-	U64 blockers = getBlockerPieces(position);
-	U64 opposite = getOppositePieces(position);
-	vector<vector<int>> figureFromCoord = position.getFigureFromCoord();
-
-	U64 moves;
-	int square;
-
-	while (knights)
-	{
-		square = BitScanForward(knights);
-		rawMoves = getMoveBoards(square, blockers, opposite);
-
-		list.add(figureFromCoord, rawMoves, square, color_, KNIGHT);
-
-		knights &= knights - 1;
-	}
-	return list;
-}
-
+//MoveList Knight::getAvailibleMoves(Position& position)
+//{
+//	MoveList list;
+//	RawMoves rawMoves;
+//
+//	U64 knights = board_;
+//	U64 blockers = getBlockerPieces(position);
+//	U64 opposite = getOppositePieces(position);
+//	vector<vector<int>> figureFromCoord = position.getFigureFromCoord();
+//
+//	U64 moves;
+//	int square;
+//
+//	while (knights)
+//	{
+//		square = BitScanForward(knights);
+//		rawMoves = getMoveBoards(square, blockers, opposite);
+//
+//		list.add(figureFromCoord, rawMoves, square, color_, KNIGHT);
+//
+//		knights &= knights - 1;
+//	}
+//	return list;
+//}
 
 
 
@@ -356,7 +463,7 @@ RawMoves Rook::getMoveBoards(int square, U64 blockers, U64 opposite)
 	return RawMoves();
 }
 
-MoveList Rook::getAvailibleMoves(Position& game)
+MoveList Rook::getAvailibleMoves(Position& postiion)
 {
 	return MoveList();
 }
@@ -397,3 +504,4 @@ MoveList King::getAvailibleMoves(Position& game)
 {
 	return MoveList();
 }
+

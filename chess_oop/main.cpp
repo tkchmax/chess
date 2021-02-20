@@ -1,6 +1,7 @@
 #include "Position.h"
 //#include "Figure.h"
 #include <sstream>
+#include "Game.h"
 
 void ShowBits(U64 bb)
 {
@@ -25,7 +26,20 @@ void ShowBits(U64 bb)
 
 int main()
 {
-	Position p;
-	ShowBits(p.getAtackRays(BLACK));
+	Position pos;
+
+	Game game;
+
+	ShowBits(game.getSideBoard(WHITE));
+	int move = CreateListItem(8, 24, PAWN, 0, MOVE_TYPE_SILENT, WHITE);
+	
+	game.makeMove(move);
+
+	ShowBits(game.getSideBoard(WHITE));
+
+
+	
+
+
 }
 

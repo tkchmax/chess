@@ -31,6 +31,7 @@ public:
 	U64 getFigureBoard(int figure, int color);
 
 	int getFigureOnSquare(int square);
+	int getSideFiguresCount(int color);
 
 
 protected:

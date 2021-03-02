@@ -75,6 +75,14 @@ int Position::getFigureOnSquare(int square)
 	return wFigure;
 }
 
+int Position::getSideFiguresCount(int color)
+{
+	int count = 0;
+	for (int type = PAWN; type <= KING; ++type)
+		count += figures_[color][type]->getFigureCount();
+	return count;
+}
+
 vector<vector<int>> Position::getFigureFromCoord()
 {
 	return figureFromCoord_;

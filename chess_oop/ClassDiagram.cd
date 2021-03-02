@@ -1,84 +1,84 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ClassDiagram MajorVersion="1" MinorVersion="1">
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="FullSignature">
   <Class Name="Figure" Collapsed="true">
-    <Position X="6.5" Y="0.5" Width="1.5" />
+    <Position X="6" Y="0.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AByAAAwAAAAAAAwAAAAAAAAgAAAAAACAIAAAwAQIAAA=</HashCode>
+      <HashCode>AByAAA0AAhAAAAwAAAAAAABgAAkAAACAIAAAwAQKAAA=</HashCode>
       <FileName>Figure.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Pawn" Collapsed="true">
-    <Position X="3.25" Y="1.75" Width="1.5" />
+    <Position X="0.5" Y="2" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAQAAAAAAgAQAAAAAAAAgAAAAAAAAAAAAQAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAgAQAAAAAAAAgAAAAAAAAAAAAQAAAAAA=</HashCode>
       <FileName>Figure.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Knight" Collapsed="true">
-    <Position X="7.75" Y="1.75" Width="1.5" />
+    <Position X="2.25" Y="2" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAEAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Figure.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Bishop" Collapsed="true">
-    <Position X="12.25" Y="1.75" Width="1.5" />
+    <Position X="4" Y="2" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAQAAAAAAAQgAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAQgAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Figure.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Rook" Collapsed="true">
-    <Position X="1" Y="1.75" Width="1.5" />
+    <Position X="8.5" Y="2" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAQAAEAAAAAgAAAAAAACAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAEAAAAAgAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Figure.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Queen" Collapsed="true">
-    <Position X="5.5" Y="1.75" Width="1.5" />
+    <Position X="6.25" Y="2" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>gAAAAAAAAAAAAAQAAAAAAAAgAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>gAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Figure.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="King" Collapsed="true">
-    <Position X="10" Y="1.75" Width="1.5" />
+    <Position X="10.25" Y="2" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAgAAQAAAAAAAAgAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAgAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Figure.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Game" Collapsed="true">
-    <Position X="0.5" Y="4.75" Width="1.5" />
+    <Position X="0.5" Y="4.5" Width="4.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAABAQAAAAAAQAAAAAAEIAAAAAAEA=</HashCode>
+      <HashCode>AAAAAAAAAAIAoAABAJAQAAAAIA4gAAAAAEIAAAAAAEA=</HashCode>
       <FileName>Game.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Position" Collapsed="true">
-    <Position X="0.5" Y="3.5" Width="1.5" />
+    <Position X="0.5" Y="3.5" Width="4.75" />
     <TypeIdentifier>
-      <HashCode>gAAAAAAAAIAAAARgIAIIAAAEAAwAggAAAAIAAAAEACA=</HashCode>
+      <HashCode>gAAAAAAAAIAAAARgIAIIAIAEAAwAggAAAAAAAAAEACA=</HashCode>
       <FileName>Position.h</FileName>
     </TypeIdentifier>
   </Class>
   <Struct Name="RawMoves" Collapsed="true">
-    <Position X="16.5" Y="0.5" Width="1.5" />
+    <Position X="17" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAACAAAAAAAAIAAAAEAAAAAAACAAAAAAAAAAA=</HashCode>
       <FileName>MoveList.h</FileName>
     </TypeIdentifier>
   </Struct>
   <Struct Name="MoveList" Collapsed="true">
-    <Position X="14.75" Y="0.5" Width="1.5" />
+    <Position X="15.25" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAEAAQgAAAAAAAAAAAAEAAAAAAAAAACAAA=</HashCode>
       <FileName>MoveList.h</FileName>
     </TypeIdentifier>
   </Struct>
   <Typedef Name="U64" Collapsed="true">
-    <Position X="14.75" Y="1.75" Width="1.5" />
+    <Position X="15.25" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>headers.h</FileName>

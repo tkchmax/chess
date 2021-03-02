@@ -130,7 +130,7 @@ MoveList Figure::getAvailibleMoves(Position& position)
 		{
 			to = BitScanForward(silentMoves);
 
-			move = CreateListItem(from, to, PAWN, 0, MOVE_TYPE_SILENT, color_); 
+			move = CreateListItem(from, to, PAWN, 0, MOVE_TYPE_SILENT, color_);
 			if (position.isMoveLegal(move))
 				list += move;
 
@@ -202,6 +202,27 @@ U64 Figure::getColor()
 	return color_;
 }
 
+int Figure::getFigureCount()
+{
+	return nFigures_;
+}
+
+int Figure::getCost()
+{
+	return pieceCost_;
+}
+
+int Figure::getPriorityEvalOnSquare(int square)
+{
+	return prioritySquares_[square];
+}
+
+const vector<int>& Figure::getPrioritySquares()
+{
+	return prioritySquares_;
+}
+
+
 bool Figure::moveFigure(int old_coordinates, int new_coordinates)
 {
 	bool isFigureExist = (1ULL << old_coordinates) & board_;
@@ -219,6 +240,7 @@ bool Figure::removePiece(int square)
 	if (isFigureOnSquare)
 	{
 		board_ &= ~(1ULL << square);
+		nFigures_--;
 		return true;
 	}
 	return false;
@@ -231,8 +253,26 @@ bool Figure::setFigureOnSquare(int square)
 	if (isFigureAlreadyOnSquare)
 		return false;
 	board_ |= (1ULL << square);
+	nFigures_++;
 	return true;
 
+}
+
+vector<int> Figure::getPiecesSquares()
+{
+	vector<int> squares;
+	squares.reserve(10);
+	U64 t_board = board_;
+
+	int count = 0;
+	int square;
+	while (t_board)
+	{
+		square = BitScanForward(t_board);
+		squares.push_back(square);
+		t_board &= ~(1ULL << square);
+	}
+	return squares;
 }
 
 
@@ -240,6 +280,26 @@ Pawn::Pawn(int color)
 {
 	color_ = color;
 	board_ = (color == WHITE ? WHITEPAWN_STARTPOSITION : BLACKPAWN_STARTPOSITION);
+	nFigures_ = 8;
+	pieceCost_ = 100;
+
+	vector<int> t_whitePrioritySquares = { 0, 0, 0, 0, 0, 0, 0, 0,
+											4, 4, 4, 0, 0, 4, 4, 4,
+											6, 8, 2, 10,10,2, 8, 6,
+											6, 8, 12,16,16,12,8, 6,
+											6, 12,16,24,24,16,12,8,
+											12, 16,24,32,32,24,16,12,
+											15, 20,30,35,35,30,20,15,
+											0, 0, 0, 0, 0, 0, 0, 0 };
+	vector<int> t_blackPrioritySquares = { 0, 0, 0, 0, 0, 0, 0, 0,
+											15, 20,30,35,35,30,20,15,
+											12, 16,24, 32,32,24,16,12,
+											6,  12,16, 24,24,16,12, 8,
+											6,	8, 12, 16,16,12, 8, 6,
+											6,  8, 2,  10,10, 2, 8, 6,
+											4,  4, 4,  0,  0, 4, 4, 4,
+											0,  0, 0,  0,  0, 0, 0, 0 };
+	prioritySquares_ = (color == WHITE ? t_whitePrioritySquares : t_blackPrioritySquares);
 }
 
 RawMoves Pawn::getMoveBoards(int square, U64 blockers, U64 opposite)
@@ -301,18 +361,18 @@ MoveList Pawn::getAvailibleMoves(Position& position)
 	int from;
 	int to;
 	int move;
-	U64 silentMoves=0, captureMoves=0;
+	U64 silentMoves = 0, captureMoves = 0;
 	bool isTransformation;
 	while (pawns)
 	{
 		from = BitScanForward(pawns);
 		t_moves = getMoveBoards(from, blockers, opposite);
 
-		 silentMoves = t_moves.silents;
-		 captureMoves = t_moves.takes;
-		 isTransformation;
+		silentMoves = t_moves.silents;
+		captureMoves = t_moves.takes;
+		isTransformation;
 
-		 move = 0;
+		move = 0;
 		while (silentMoves)
 		{
 			to = BitScanForward(silentMoves);
@@ -374,31 +434,35 @@ U64 Pawn::getAttackBoard(U64 blockers, U64 opposite)
 	return attacks & delTwoSquareMoves_mask;
 }
 
-bool Pawn::_isPawnTransformMove(int move)
-{
-	return false;
-}
-
-
 
 Knight::Knight(int color)
 {
 	color_ = color;
 	board_ = (color == WHITE ? WHITEKNIGHT_STARTPOSITION : BLACKKNIGHT_STARTPOSITION);
+	nFigures_ = 2;
+	pieceCost_ = 300;
+	prioritySquares_ = { 0, 2, 8, 10, 10, 8, 2, 0,
+						4 ,8, 16, 20, 20, 16, 8, 4,
+						8, 16, 25, 28, 28, 25, 16,8,
+						10, 20,28, 32, 32, 28, 20,10,
+						10, 20,28, 32, 32, 28, 20,10,
+						8, 16, 25, 28, 28, 25, 16, 8,
+						4, 8, 16, 20, 20, 16,  8,  4,
+						0, 2, 8,  10, 10  ,8  ,2  ,0 };
 }
 
 RawMoves Knight::getMoveBoards(int square, U64 blockers, U64 opposite)
 {
 	RawMoves moves;
 	U64 board = 0;
-	board |= (1ULL << square + 10) & (NOT_B_FILE & NOT_A_FILE);
-	board |= (1ULL << square - 6) & (NOT_B_FILE & NOT_A_FILE);
-	board |= (1ULL << square - 15) & NOT_A_FILE;
-	board |= (1ULL << square - 17) & NOT_H_FILE;
-	board |= (1ULL << square - 10) & (NOT_G_FILE & NOT_H_FILE);
-	board |= (1ULL << square + 6) & (NOT_G_FILE & NOT_H_FILE);
-	board |= (1ULL << square + 15) & NOT_H_FILE;
-	board |= (1ULL << square + 17) & NOT_A_FILE;
+	board |= (1ULL << (square + 10)) & (NOT_B_FILE & NOT_A_FILE);
+	board |= (1ULL << (square - 6))& (NOT_B_FILE & NOT_A_FILE);
+	board |= (1ULL << (square - 15)) & NOT_A_FILE;
+	board |= (1ULL << (square - 17)) & NOT_H_FILE;
+	board |= (1ULL << (square - 10)) & (NOT_G_FILE & NOT_H_FILE);
+	board |= (1ULL << (square + 6))& (NOT_G_FILE & NOT_H_FILE);
+	board |= (1ULL << (square + 15)) & NOT_H_FILE;
+	board |= (1ULL << (square + 17)) & NOT_A_FILE;
 
 	moves.silents = board & ~opposite & ~blockers;
 	moves.takes = board & opposite;
@@ -406,102 +470,217 @@ RawMoves Knight::getMoveBoards(int square, U64 blockers, U64 opposite)
 	return moves;
 }
 
-//MoveList Knight::getAvailibleMoves(Position& position)
-//{
-//	MoveList list;
-//	RawMoves rawMoves;
-//
-//	U64 knights = board_;
-//	U64 blockers = getBlockerPieces(position);
-//	U64 opposite = getOppositePieces(position);
-//	vector<vector<int>> figureFromCoord = position.getFigureFromCoord();
-//
-//	U64 moves;
-//	int square;
-//
-//	while (knights)
-//	{
-//		square = BitScanForward(knights);
-//		rawMoves = getMoveBoards(square, blockers, opposite);
-//
-//		list.add(figureFromCoord, rawMoves, square, color_, KNIGHT);
-//
-//		knights &= knights - 1;
-//	}
-//	return list;
-//}
 
-
+Bishop::Bishop()
+{
+}
 
 Bishop::Bishop(int color)
 {
 	color_ = color;
 	board_ = (color == WHITE ? WHITEBISHOP_STARTPOSITION : BLACKBISHOP_STARTPOSITION);
+	nFigures_ = 2;
+	pieceCost_ = 301;
+	prioritySquares_ = { 0,	0,	0,	0,	0,	0,	0,	0,
+						5,  23,  15,  15,  15,  15,  23,5,
+						5,  18,  22, 22, 22,  22,  18,5,
+						5,  18,  22, 22, 22,  22,   18,5,
+						5,  18, 22, 22, 22,  22,   18,5,
+						5, 18,22, 22, 22,   22, 18,	5,
+						5,  23,  15,  15,  15,  15,  23,5,
+						0,	0,	0,	0,	0,	0,	0,	0, };
 }
 
 RawMoves Bishop::getMoveBoards(int square, U64 blockers, U64 opposite)
 {
-	return RawMoves();
+	U64 moves = 0;
+	U64 all_pieces = blockers | opposite;
+	//North-East
+	moves |= rays[NORTH_EAST][square];
+	if (rays[NORTH_EAST][square] & all_pieces)
+	{
+		int blockerId = BitScanForward(rays[NORTH_EAST][square] & all_pieces);
+		moves &= ~rays[NORTH_EAST][blockerId];
+	}
+
+	//North-West
+	moves |= rays[NORTH_WEST][square];
+	if (rays[NORTH_WEST][square] & all_pieces)
+	{
+		int blockerId = BitScanForward(rays[NORTH_WEST][square] & all_pieces);
+		moves &= ~rays[NORTH_WEST][blockerId];
+	}
+
+	//South-East
+	moves |= rays[SOUTH_EAST][square];
+	if (rays[SOUTH_EAST][square] & all_pieces)
+	{
+		int blockerId = BitScanReverse(rays[SOUTH_EAST][square] & all_pieces);
+		moves &= ~rays[SOUTH_EAST][blockerId];
+	}
+
+	//South-West
+	moves |= rays[SOUTH_WEST][square];
+	if (rays[SOUTH_WEST][square] & all_pieces)
+	{
+		int blockerId = BitScanReverse(rays[SOUTH_WEST][square] & all_pieces);
+		moves &= ~rays[SOUTH_WEST][blockerId];
+	}
+
+	RawMoves bishopMoves;
+	bishopMoves.silents = moves & ~opposite & ~blockers;
+	bishopMoves.takes = moves & opposite;
+
+	return bishopMoves;
 }
 
-MoveList Bishop::getAvailibleMoves(Position& game)
+
+Rook::Rook()
 {
-	return MoveList();
 }
-
-
-
 
 Rook::Rook(int color)
 {
 	color_ = color;
 	board_ = (color == WHITE ? WHITEROOK_STARTPOSITION : BLACKROOK_STARTPOSITION);
+	nFigures_ = 2;
+	pieceCost_ = 500;
+	prioritySquares_ = {0, 0, 0,  5,  5, 5, 0, 0,
+						0, 0, 0,  0,  0, 0, 0, 0,
+						0, 0, 0,  0,  0, 0, 0, 0,
+						0, 0, 0,  0,  0, 0, 0, 0,
+						0, 0, 0,  0,  0, 0, 0, 0,
+						0, 0, 0,  0,  0, 0, 0, 0,
+						0, 0, 0,  0,  0, 0, 0, 0,
+						0, 0, 0,  5,  5, 5, 0, 0 };
+
 }
 
 RawMoves Rook::getMoveBoards(int square, U64 blockers, U64 opposite)
 {
-	return RawMoves();
+
+	U64 moves = 0;
+	U64 all_pieces = blockers | opposite;
+	//North
+	moves |= rays[NORTH][square];
+	if (rays[NORTH][square] & all_pieces)
+	{
+		int blockerId = BitScanForward(rays[NORTH][square] & all_pieces);
+		moves &= ~rays[NORTH][blockerId];
+	}
+
+	//West
+	moves |= rays[WEST][square];
+	if (rays[WEST][square] & all_pieces)
+	{
+		int blockerId = BitScanReverse(rays[WEST][square] & all_pieces);
+		moves &= ~rays[WEST][blockerId];
+	}
+	//South
+	moves |= rays[SOUTH][square];
+	if (rays[SOUTH][square] & all_pieces)
+	{
+		int blockerId = BitScanReverse(rays[SOUTH][square] & all_pieces);
+		moves &= ~rays[SOUTH][blockerId];
+	}
+	//East
+	moves |= rays[EAST][square];
+	if (rays[EAST][square] & all_pieces)
+	{
+		int blockerId = BitScanForward(rays[EAST][square] & all_pieces);
+		moves &= ~rays[EAST][blockerId];
+	}
+
+	RawMoves rookMoves;
+	rookMoves.silents = moves & ~opposite & ~blockers;
+	rookMoves.takes = moves & opposite;
+
+	return rookMoves;
 }
-
-MoveList Rook::getAvailibleMoves(Position& postiion)
-{
-	return MoveList();
-}
-
-
 
 Queen::Queen(int color)
 {
 	color_ = color;
 	board_ = (color == WHITE ? WHITEQUEEN_STARTPOSITION : BLACKQUEEN_STARTPOSITION);
+	nFigures_ = 1;
+	pieceCost_ = 1000;
+	prioritySquares_ = { -20,-10,-10, 0, 0,-10,-10,-20,
+						-10,  0,  0,  0,  0,  0,  0,-10,
+						-10,  0,  5,  5,  5,  5,  0,-10,
+						 -5,  0,  5,  5,  5,  5,  0, -5,
+						 -5,  0,  5,  5,  5,  5,  0, -5,
+						-10,  5,  5,  5,  5,  5,  0,-10,
+						-10,  0,  0,  0,  0,  0,  0,-10,
+						-20,-10,-10, 0, 0,-10,-10,-20 };
 }
 
 RawMoves Queen::getMoveBoards(int square, U64 blockers, U64 opposite)
 {
-	return RawMoves();
+	RawMoves bishopMoves = Bishop::getMoveBoards(square, blockers, opposite);
+	RawMoves rookMoves = Rook::getMoveBoards(square, blockers, opposite);
+
+	RawMoves queenMoves;
+	queenMoves.silents = bishopMoves.silents | rookMoves.silents;
+	queenMoves.takes = bishopMoves.takes | rookMoves.takes;
+
+	return queenMoves;
+
 }
-
-MoveList Queen::getAvailibleMoves(Position& game)
-{
-	return MoveList();
-}
-
-
 
 
 King::King(int color)
 {
 	color_ = color;
 	board_ = (color == WHITE ? WHITEKING_STARTPOSITION : BLACKKING_STARTPOSITION);
+	nFigures_ = 1;
+	pieceCost_ = 6000;
+
+	vector<int> t_blackKingMiddleGamePriority = { -30, -30,  -45,  -45,  -45,  -45, -30, -30,
+											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
+											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
+											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
+											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
+											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
+											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
+											 0, 0, -28,  -30,  -30, -28, 0, 0 };
+	vector<int> t_whiteKingMiddleGamePriority = { 0, 0, -28,  -30,  -30, -28, 0, 0,
+											 -30, -30,  -45,  -45,  -45,  -45, -30, -30,
+											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
+											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
+											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
+											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
+											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
+											-30, -30,  -45,  -45,  -45,  -45, -30, -30, };
+	vector<int> t_kingEndGamePriority ={0, 0, 0,  0,  0, 0, 0, 0,
+										0, 3,  3,  3,  3,  3, 3, 0,
+										5,10,10,10,10,10,10, 5,
+										10,20,20,30,30,20,20, 10,
+										10,20,20,30,30,20,20, 10,
+										5,-40,-40,-50,-50,-40,-40, 5,
+										0, 3,  3,  3,  3,  3, 3, 0,
+										0, 0, 0,  0,  0, 0, 0, 0 };
+
+	prioritySquares_ = (color == WHITE ? t_whiteKingMiddleGamePriority : t_blackKingMiddleGamePriority);
 }
 
 RawMoves King::getMoveBoards(int square, U64 blockers, U64 opposite)
 {
-	return RawMoves();
+	U64 moves = 0;
+	moves |= (1ULL << (square + 1)) & NOT_A_FILE; //east
+	moves |= (1ULL << (square + 9)) & NOT_A_FILE; //north-east
+	moves |= (1ULL << (square - 7)) & NOT_A_FILE; //south_east
+	moves |= (1ULL << (square - 1)) & NOT_H_FILE; //west
+	moves |= (1ULL << (square - 9)) & NOT_H_FILE; //south-west
+	moves |= (1ULL << (square + 7)) & NOT_H_FILE; //north-west
+	moves |= (1ULL << (square + 8)); // north
+	moves |= (1ULL << (square - 8)); // south
+
+
+	RawMoves kingMoves;
+	kingMoves.silents = moves & ~opposite & ~blockers;
+	kingMoves.takes = moves & opposite;
+
+	return kingMoves;
 }
 
-MoveList King::getAvailibleMoves(Position& game)
-{
-	return MoveList();
-}
 

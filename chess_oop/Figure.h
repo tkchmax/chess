@@ -25,15 +25,26 @@ public:
 	U64 getOppositePieces(Position& position);
 	U64 getBoard();
 	U64 getColor();
+	int getFigureCount();
+	int getCost();
+	int getPriorityEvalOnSquare(int square);
+	const vector<int>& getPrioritySquares();
 
-	bool moveFigure(int old_square, int new_square);
+	bool moveFigure(int from_square, int to_square);
 	bool removePiece(int square);
 	bool setFigureOnSquare(int square);
+
+	vector<int> getPiecesSquares();
+
 	
 protected:
 	U64 board_;
 	int nFigures_;
 	int color_;
+
+	int pieceCost_;
+	vector<int> prioritySquares_;
+
 };
 
 
@@ -44,8 +55,6 @@ public:
 	RawMoves getMoveBoards(int square, U64 blockers, U64 opposite) override;
 	MoveList getAvailibleMoves(Position& position) override;
 	U64 getAttackBoard(U64 blockers, U64 opposite) override;
-private:
-	bool _isPawnTransformMove(int move);
 };
 
 class Knight : public Figure
@@ -56,44 +65,34 @@ public:
 
 };
 
-class Bishop : public Figure
+class Bishop : public virtual Figure
 {
 public:
+	Bishop();
 	Bishop(int color);
 	RawMoves getMoveBoards(int square, U64 blockers, U64 opposite) override;
-	MoveList getAvailibleMoves(Position& position) override;
-
 };
 
-class Rook : public Figure
+class Rook : public virtual Figure
 {
 public:
+	Rook();
 	Rook(int color);
 	RawMoves getMoveBoards(int square, U64 blockers, U64 opposite) override;
-	MoveList getAvailibleMoves(Position& position) override;
-
-private:
-	bool isMoved;
 };
 
-class Queen : public Figure
+class Queen : public Bishop, public Rook
 {
 public:
 	Queen(int color);
 	RawMoves getMoveBoards(int square, U64 blockers, U64 opposite) override;
-	MoveList getAvailibleMoves(Position& position) override;
-
 };
 
 class King : public Figure
 {
 public:
 	King(int color);
-
 	RawMoves getMoveBoards(int square, U64 blockers, U64 opposite) override;
-	MoveList getAvailibleMoves(Position& position) override;
-
-
 }; 
 #endif // !_FIGURE_
 

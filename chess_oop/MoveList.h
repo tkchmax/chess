@@ -1,6 +1,8 @@
 #pragma once
 #include "headers.h"
 
+#ifndef _MOVELIST_
+#define _MOVELIST_
 
 struct RawMoves
 {
@@ -32,6 +34,8 @@ struct MoveList
 int CreateListItem(int from, int to, int figure, int capture, int move_type, int color);
 
 void ShowListItem(int item);
+
+#endif
 
 
 

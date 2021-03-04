@@ -1,7 +1,7 @@
 #include "MoveList.h"
 #include <sstream>
 
-int BitScanForward(U64 bb)//??
+int BitScanForward(U64 bb)
 {
 	//бнгбпюыюел хмдейя оепбнцн гмювюыецн ахрю
 	U64 mask = 1ULL;

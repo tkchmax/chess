@@ -9,20 +9,18 @@
 
 class Position;
 
-void _initializeRays();
-
 class Figure
 {
 public:
+	Figure();
 	virtual RawMoves getMoveBoards(int square, U64 blockers, U64 opposite) = 0;
-	virtual MoveList getAvailibleMoves(Position& position);
+	virtual MoveList getAvailibleMoves(const Position& position);
 	virtual U64 getAttackBoard(U64 blockers, U64 opposite);
 
 	void setBoard(U64 board);
 	void setColor(int color);
 
-	U64 getBlockerPieces(Position& position);
-	U64 getOppositePieces(Position& position);
+	int getName();
 	U64 getBoard();
 	U64 getColor();
 	int getFigureCount();
@@ -38,6 +36,7 @@ public:
 
 	
 protected:
+	int name_;
 	U64 board_;
 	int nFigures_;
 	int color_;
@@ -53,7 +52,7 @@ class Pawn : public Figure
 public:
 	Pawn(int color);
 	RawMoves getMoveBoards(int square, U64 blockers, U64 opposite) override;
-	MoveList getAvailibleMoves(Position& position) override;
+	MoveList getAvailibleMoves(const Position& position) override;
 	U64 getAttackBoard(U64 blockers, U64 opposite) override;
 };
 

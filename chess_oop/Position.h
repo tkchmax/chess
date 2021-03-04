@@ -12,31 +12,35 @@ class Position
 public:
 	Position();
 	
-	vector<vector<shared_ptr<Figure>>> getFigures();
-	vector<vector<int>> getFigureFromCoord();
+	vector<vector<shared_ptr<Figure>>> getFigures() const;
+	vector<vector<int>> getFigureFromCoord() const;
 
-	U64 getSideBoard(int color);
+	U64 getSideBoard(int color) const;
 	U64 getAllFiguresBoard();
 
 
-	bool isMoveLegal(int move);
-	U64 getAtackRays(int color);
+	bool isMoveLegal(int move) const;
+	U64 getAtackRays(int color) const;
 
 	void setFigures(vector<vector<shared_ptr<Figure>>> figures);
 	void setFigureFromCoord(vector<vector<int>> figuresFromCoord);
 
-	bool isKingAttacked(int color);
+	bool isKingAttacked(int color) const;
 
-	MoveList getFigureMoveList(int figure, int color);
-	U64 getFigureBoard(int figure, int color);
+	MoveList getFigureMoveList(int figure, int color) const;
+	MoveList getMoves(int color) const;
+	U64 getFigureBoard(int figure, int color) const;
 
-	int getFigureOnSquare(int square);
-	int getSideFiguresCount(int color);
+	int getFigureOnSquare(int square) const ;
+	int getSideFiguresCount(int color) const;
 
 
 protected:
 	vector<vector<shared_ptr<Figure>>> figures_;
 	vector<vector<int>> figureFromCoord_;
+private:
+	Position(const Position& position);
+
 };
 #endif // !_GAME_
 

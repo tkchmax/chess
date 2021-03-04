@@ -38,12 +38,18 @@ Position::Position()
 
 }
 
-vector<vector<shared_ptr<Figure>>> Position::getFigures()
+Position::Position(const Position& position)
+{
+
+}
+
+
+vector<vector<shared_ptr<Figure>>> Position::getFigures() const
 {
 	return figures_;
 }
 
-U64 Position::getSideBoard(int color)
+U64 Position::getSideBoard(int color) const
 {
 	U64 board = figures_[color][PAWN]->getBoard() | figures_[color][KNIGHT]->getBoard() | figures_[color][BISHOP]->getBoard() | figures_[color][ROOK]->getBoard()
 		| figures_[color][QUEEN]->getBoard() | figures_[color][KING]->getBoard();
@@ -55,17 +61,25 @@ U64 Position::getAllFiguresBoard()
 	return getSideBoard(WHITE) | getSideBoard(BLACK);
 }
 
-MoveList Position::getFigureMoveList(int figure, int color)
+MoveList Position::getFigureMoveList(int figure, int color) const
 {
 	return figures_[color][figure]->getAvailibleMoves(*this);
 }
 
-U64 Position::getFigureBoard(int type, int color)
+MoveList Position::getMoves(int color) const
+{
+	MoveList moves;
+	for (int type = PAWN; type <= KING; ++type)
+		moves += figures_[color][type]->getAvailibleMoves(*this);
+	return moves;
+}
+
+U64 Position::getFigureBoard(int type, int color) const
 {
 	return figures_[color][type]->getBoard();
 }
 
-int Position::getFigureOnSquare(int square)
+int Position::getFigureOnSquare(int square) const
 {
 	int wFigure = figureFromCoord_[WHITE][square];
 	int bFigure = figureFromCoord_[BLACK][square];
@@ -75,7 +89,7 @@ int Position::getFigureOnSquare(int square)
 	return wFigure;
 }
 
-int Position::getSideFiguresCount(int color)
+int Position::getSideFiguresCount(int color) const
 {
 	int count = 0;
 	for (int type = PAWN; type <= KING; ++type)
@@ -83,28 +97,31 @@ int Position::getSideFiguresCount(int color)
 	return count;
 }
 
-vector<vector<int>> Position::getFigureFromCoord()
+vector<vector<int>> Position::getFigureFromCoord() const
 {
 	return figureFromCoord_;
 }
 
-bool Position::isMoveLegal(int move)
+bool Position::isMoveLegal(int move) const
 {
-	Position testPosition(*this);
-
 	int move_figure = READ_FIGURE(move);
 	int move_from = READ_FROM(move);
 	int move_to = READ_TO(move);
 	int move_color = READ_COLOR(move);
 
-	testPosition.figures_[move_color][move_figure]->moveFigure(move_from, move_to);
+	figures_[move_color][move_figure]->moveFigure(move_from, move_to);
 
-	if (testPosition.isKingAttacked(move_color))
+	if (isKingAttacked(move_color))
+	{
+		figures_[move_color][move_figure]->moveFigure(move_to, move_from);
 		return false;
+	}
+	figures_[move_color][move_figure]->moveFigure(move_to, move_from);
+
 	return true;
 }
 
-U64 Position::getAtackRays(int color)
+U64 Position::getAtackRays(int color) const
 {
 	int opColor = (color == WHITE ? BLACK : WHITE);
 	U64 blockers = getSideBoard(color);
@@ -129,7 +146,7 @@ void Position::setFigureFromCoord(vector<vector<int>> figureFromCoord)
 	figureFromCoord_ = figureFromCoord;
 }
 
-bool Position::isKingAttacked(int color)
+bool Position::isKingAttacked(int color) const
 {
 	int oppositeColor = (color == WHITE ? BLACK : WHITE);
 	U64 attackers = getAtackRays(oppositeColor);

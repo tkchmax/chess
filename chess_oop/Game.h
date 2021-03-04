@@ -28,7 +28,7 @@ protected:
 	bool _undoLongCastling(int color); 
 	void _undoPawnTransform(int transform_in, int square, int color);
 
-private:
+protected:
 	vector<int> isKingMoved_;
 	vector<int> isLshRookMoved_;
 	vector<int> isRshRookMoved_;

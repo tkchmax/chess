@@ -102,13 +102,15 @@ void _initializeRays()
 	}
 }
 
+
 int main()
 {
 	_initializeRays();
 	Game game;
 	Player p1(&game, WHITE);
 	Player p2(&game, BLACK);
-
+	
+	
 	//game.setFEN("r2qkb1r/p1p2ppp/2p1pn2/3p4/3P4/2N1PQ2/PPP2PPP/R1B1K2R/");
 
 	//for (int i = 0; i < 5; ++i)

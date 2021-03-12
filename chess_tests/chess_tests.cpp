@@ -57,7 +57,108 @@ namespace figuretests
 
 		}
 
+		TEST_METHOD(GENERATE_WHITE_PAWN_MOVES)
+		{
+			_initializeRays();
+			Position position;
+			U64 EXPECTED_SILENT_MOVES;
+			U64 EXPECTED_CAPTURE_MOVES;
+			RawMoves moves;
+
+			shared_ptr<Figure> pawns = position.getFigure(PAWN, WHITE);
+
+			//White pawns on start position
+			//Blockers: a3, c3, e4, f3, h3
+			position.setFEN("8/8/8/8/4Q3/B1B2N1N/PPPPPPPP/8/");
+			EXPECTED_SILENT_MOVES = 0x4A5A0000;
+			EXPECTED_CAPTURE_MOVES = 0;
+
+			moves = GenerateMoves_tests(position, pawns);
+			Assert::AreEqual(moves.silents, EXPECTED_SILENT_MOVES);
+			Assert::AreEqual(moves.takes, EXPECTED_CAPTURE_MOVES);
+
+			//White pawns on start position
+			//Blockers: a3, c3, e4, f3, h3
+			//Captures: b3, e3, g3
+			position.setFEN("8/8/8/8/4Q3/BqB1nNkN/PPPPPPPP/8/");
+			EXPECTED_SILENT_MOVES = 0x8080000;
+			EXPECTED_CAPTURE_MOVES = 0x520000;
+
+			moves = GenerateMoves_tests(position, pawns);
+			Assert::AreEqual(moves.silents, EXPECTED_SILENT_MOVES);
+			Assert::AreEqual(moves.takes, EXPECTED_CAPTURE_MOVES);
+
+			//White pawns on start position
+			//Blockers: a3, c3, e4, f3, h3
+			//Captures: a-h(3)
+			position.setFEN("8/8/8/8/8/nqnnnnkn/PPPPPPPP/8/");
+			EXPECTED_SILENT_MOVES = 0;
+			EXPECTED_CAPTURE_MOVES = 0xFF0000;
+
+			moves = GenerateMoves_tests(position, pawns);
+			Assert::AreEqual(moves.silents, EXPECTED_SILENT_MOVES);
+			Assert::AreEqual(moves.takes, EXPECTED_CAPTURE_MOVES);
+
+			//White pawns on a-h(2), a5, c5, f5, g5
+			//Blockers: NO
+			//Captures: a6, d6, h6
+			position.setFEN("8/8/p2p3p/P1P2PP1/8/8/PPPPPPPP/8/");
+			EXPECTED_SILENT_MOVES = 0x6400FFFF0000;
+			EXPECTED_CAPTURE_MOVES = 0x880000000000;
+
+			moves = GenerateMoves_tests(position, pawns);
+			Assert::AreEqual(moves.silents, EXPECTED_SILENT_MOVES);
+			Assert::AreEqual(moves.takes, EXPECTED_CAPTURE_MOVES);
+
+		}
+
+		TEST_METHOD(GENERATE_BLACK_PAWN_MOVES)
+		{
+			_initializeRays();
+			Position position;
+			U64 EXPECTED_SILENT_MOVES;
+			U64 EXPECTED_CAPTURE_MOVES;
+			RawMoves moves;
+
+			shared_ptr<Figure> pawns = position.getFigure(PAWN, BLACK);
+
+			//Black pawns on start position
+			//Blockers: a6, e6, g6
+			//Captures: NO
+			position.setFEN("8/pppppppp/r3n1n1/8/8/8/8/8/");
+			EXPECTED_SILENT_MOVES = 0xAEAE00000000;
+			EXPECTED_CAPTURE_MOVES = 0;
+
+			moves = GenerateMoves_tests(position, pawns);
+			Assert::AreEqual(moves.silents, EXPECTED_SILENT_MOVES);
+			Assert::AreEqual(moves.takes, EXPECTED_CAPTURE_MOVES);
+
+
+			//Black pawns on start position
+			//Blockers: a6, e6, g6
+			//Captures: 
+			position.setFEN("8/pppppppp/r1PBn1nN/8/8/8/8/8/");
+			EXPECTED_SILENT_MOVES = 0x222200000000;
+			EXPECTED_CAPTURE_MOVES = 0x8C0000000000;
+
+			moves = GenerateMoves_tests(position, pawns);
+			Assert::AreEqual(moves.silents, EXPECTED_SILENT_MOVES);
+			Assert::AreEqual(moves.takes, EXPECTED_CAPTURE_MOVES);
+
+			
+			//Black pawns on a-h(7), c4, f4, h4
+			//Blockers: c3
+			//Captures: e3, g3
+			position.setFEN("8/pppppppp/8/8/2p2p1p/2B1B1B1/8/8/");
+			EXPECTED_SILENT_MOVES = 0xFFFF00A00000;
+			EXPECTED_CAPTURE_MOVES = 0x500000;
+
+			moves = GenerateMoves_tests(position, pawns);
+			Assert::AreEqual(moves.silents, EXPECTED_SILENT_MOVES);
+			Assert::AreEqual(moves.takes, EXPECTED_CAPTURE_MOVES);
+		}
 	};
+	
 
 	TEST_CLASS(KNGIHT_TESTS)
 	{

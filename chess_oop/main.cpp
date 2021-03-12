@@ -1,27 +1,5 @@
-#include "Position.h"
-//#include "Figure.h"
-#include <sstream>
-#include "Game.h"
+#include "Player.h"
 
-void ShowBits(U64 bb)
-{
-	int bit;
-	int count = 0;
-
-	int i = 64 - 8;
-	for (; i >= 0; i++) {
-		bit = (bb >> i) & 1;
-		cout << bit << '\t';
-		count++;
-		if (count == 8)
-		{
-			count = 0;
-			i = i - 16;
-			cout << endl;
-		}
-	}
-	cout << endl << endl;
-}
 
 vector<vector<U64>> rays(8, vector<U64>(64));
 U64 _aOut(U64 bb)
@@ -127,13 +105,30 @@ void _initializeRays()
 int main()
 {
 	_initializeRays();
-
 	Game game;
+	Player p1(&game, WHITE);
+	Player p2(&game, BLACK);
 
-	int move = CreateListItem(8, 16, PAWN, 0, MOVE_TYPE_SILENT, WHITE);
-	game.makeMove(move);
-	
-	cout << game.getMoves(BLACK);
+	//game.setFEN("r2qkb1r/p1p2ppp/2p1pn2/3p4/3P4/2N1PQ2/PPP2PPP/R1B1K2R/");
 
+	//for (int i = 0; i < 5; ++i)
+	//{
+	//	p1.alphaBeta(4, -INF, INF);
+	//	p2.alphaBeta(4, -INF, INF);
+	//}
+
+	//ShowBoardVector(game.getFigureFromCoord(), WHITE);
+	//for (int i = PAWN; i <= KING; ++i)
+	//	ShowBits(game.getFigureBoard(i, WHITE));
+	//cout << "black: " << endl;
+	//for (int i = PAWN; i <= KING; ++i)
+	//	ShowBits(game.getFigureBoard(i, BLACK));
+	//ShowBoardVector(game.getFigureFromCoord(), BLACK);
+
+	for (int i = 0; i < 20; ++i)
+	{
+		p1.alphaBeta(4, -INF, INF);
+		p2.alphaBeta(4, -INF, INF);
+	}
 }
 

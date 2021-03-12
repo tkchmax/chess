@@ -9,6 +9,8 @@ using namespace std;
 
 typedef unsigned long long U64;
 
+#define INF 100000000000000000
+
 #define KING 6
 #define QUEEN 5
 #define ROOK 4
@@ -47,7 +49,7 @@ typedef unsigned long long U64;
 #define NOT_G_FILE ~4629771061636907072
 #define NOT_B_FILE ~144680345676153346
 
-
+#define ALL -1
 #define MOVE_TYPE_SILENT 0
 #define MOVE_TYPE_TAKE 1
 #define MOVE_TYPE_0_0 2

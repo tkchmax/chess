@@ -1,8 +1,12 @@
 #pragma once
 #include "headers.h"
+#include <deque>
 
 #ifndef _MOVELIST_
 #define _MOVELIST_
+
+void ShowBits(U64 bb);
+void ShowBoardVector(vector<vector<int>> board, int color);
 
 struct RawMoves
 {
@@ -13,22 +17,27 @@ struct RawMoves
 		silents = 0;
 		takes = 0;
 	}
-	vector<int> getSilentMoves();
+	void operator+=(const RawMoves& moves)
+	{
+		silents |= moves.silents;
+		takes |= moves.takes;
+	}
 };
 
 struct MoveList
 {
-	int silent[100];
-	int capture[100];
-
-	int sEnd = -1;
-	int cEnd = -1;
+	deque<int> silent;
+	deque<int> capture;
 	
 	friend void operator+=(MoveList& lsh, const int move);
 	friend void operator+=(MoveList& lsh, const MoveList& rsh);
 	friend ostream& operator<<(ostream& out, const MoveList& list);
+	std::deque<int>::iterator captureIter;
 
-	void add(vector<vector<int>> figureFromCoord, RawMoves moves, int from, int color, int figure);
+	int next();
+
+private:
+	std::deque<int>::iterator silentIter;
 };
 
 int CreateListItem(int from, int to, int figure, int capture, int move_type, int color);

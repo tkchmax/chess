@@ -30,6 +30,44 @@ int BitScanReverse(U64 bb)//??
 	return -1;
 }
 
+void ShowBoardVector(vector<vector<int>> board, int color)
+{
+	int count = 0;
+
+	int i = 64 - 8;
+	for (; i >= 0; i++) {
+		//bit = (bb >> i) & 1;
+		//cout << bit << '\t';
+		cout << board[color][i]<<'\t';
+		count++;
+		if (count == 8)
+		{
+			count = 0;
+			i = i - 16;
+			cout << endl;
+		}
+	}
+	cout << endl << endl;
+}
+void ShowBits(U64 bb)
+{
+	int bit;
+	int count = 0;
+
+	int i = 64 - 8;
+	for (; i >= 0; i++) {
+		bit = (bb >> i) & 1;
+		cout << bit << '\t';
+		count++;
+		if (count == 8)
+		{
+			count = 0;
+			i = i - 16;
+			cout << endl;
+		}
+	}
+	cout << endl << endl;
+}
 
 string ConvertFigureName(int number)
 {
@@ -106,46 +144,25 @@ void ShowListItem(int item)
 	cout << "Move type: " << move_type << endl;
 }
 
-ostream& operator<<(ostream& out, const MoveList& list)
+ostream& operator<<(ostream& out, const MoveList& deque)
 {
 	int count = 0;
-	out << "silent_count: " << list.sEnd + 1 << endl;
-	out << "capture_count: " << list.cEnd + 1 << endl << endl;
+	out << "silent_count: " << deque.silent.size() << endl;
+	out << "capture_count: " << deque.capture.size() << endl << endl;
 
 
-	for (int i = 0; i <= list.sEnd; ++i)
+	for (auto const& item : deque.silent)
 	{
-		ShowListItem(list.silent[i]);
-		out << endl;
-
-
-	}
-	for (int j = 0; j <= list.cEnd; ++j)
-	{
-		ShowListItem(list.capture[j]);
+		ShowListItem(item);
 		out << endl;
 	}
-	out << endl;
+	for (auto const& item : deque.capture)
+	{
+		ShowListItem(item);
+		out << endl;
+	}
 	return out;
-
-}/*
-	for (int i = 0; i <= sEnd; ++i)
-	{
-		if (READ_FIGURE(silent[i]) == type)
-		{
-			ShowListItem(mv.silent[i]);
-			cout << endl;
-		}
-	}
-	for (int j = 0; j <= cEnd; ++j)
-	{
-		if (READ_FIGURE(capture[j]) == type)
-		{
-			ShowListItem(capture[j]);
-			cout << endl;
-			count++;
-		}
-	}*/
+}
 
 int CreateListItem(int from, int to, int figure, int capture, int move_type, int color)
 {
@@ -154,52 +171,39 @@ int CreateListItem(int from, int to, int figure, int capture, int move_type, int
 	return item;
 }
 
-void MoveList::add(vector<vector<int>> figureFromCoord, RawMoves moves, int from, int color, int figure)
+void operator+=(MoveList& deque, const int move)
 {
-	int oppositeColor = (color == WHITE ? BLACK : WHITE);
-	int move, to, capture;
-
-	while (moves.silents)
-	{
-		to = BitScanForward(moves.silents);
-		move = CreateListItem(from, to, figure, NO_FIGURE, MOVE_TYPE_SILENT, color);
-		*this += move;
-
-		moves.silents &= moves.silents - 1;
-	}
-	while (moves.takes)
-	{
-		to = BitScanForward(moves.takes);
-		capture = figureFromCoord[oppositeColor][to];
-		move = CreateListItem(from, to, figure, capture, MOVE_TYPE_TAKE, color);
-		*this += move;
-		moves.takes &= moves.takes - 1;
-	}
-}
-
-void operator+=(MoveList & list, const int move)
-{
+	if (move == 0)
+		cout << "";
 	int type = READ_MOVE_TYPE(move);
 	if (type == MOVE_TYPE_TAKE)
+		deque.capture.push_back(move);
+	else 
+		deque.silent.push_back(move);
+}
+
+void operator+=(MoveList& lsh, const MoveList& rsh)
+{
+	copy(rsh.capture.begin(), rsh.capture.end(), back_inserter(lsh.capture));
+	copy(rsh.silent.begin(), rsh.silent.end(), back_inserter(lsh.silent));
+}
+
+
+int MoveList::next()
+{
+
+	if (!capture.empty())
+	{	
+		int temp = capture[0];
+		capture.pop_front();
+		return temp;
+	}
+	if (!silent.empty())
 	{
-		list.cEnd++;
-		list.capture[list.cEnd] = move;
+		int temp = silent[0];
+		silent.pop_front();
+		return temp;
 	}
-	else {
-		list.sEnd++;
-		list.silent[list.sEnd] = move;
-	}
-}
 
-void operator+=(MoveList & lsh, const MoveList & rsh)
-{
-	for (int i = 0; i <= rsh.sEnd; ++i)
-		lsh += rsh.silent[i];
-	for (int j = 0; j <= rsh.cEnd; ++j)
-		lsh += rsh.capture[j];
-}
-
-vector<int> RawMoves::getSilentMoves()
-{
-	return vector<int>();
+	return 0;
 }

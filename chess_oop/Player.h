@@ -8,10 +8,15 @@
 class Player
 {
 public:
-	int alphaBeta();
+	Player(Game* game, int color);
+	int alphaBeta(int depth, int alpha, int beta);
+	void applyMove(int move);
 private:
-	int _alphaBeta();
-	Game* game;
+	Game* game_;
+	int color_;
+	int _alphaBeta(int depth, int alpha, int beta, int color);
+	int _quies(int alpha, int beta, int color);
+
 };
 
 

@@ -36,13 +36,27 @@ Position::Position()
 		}
 	}
 
+	isKingMoved_ = vector<bool>(2);
+	isRshRookMoved_ = vector<bool>(2);
+	isLshRookMoved_ = vector<bool>(2);
 }
+
+class MvvLva
+{
+public:
+	inline bool operator()(int a, int b)
+	{
+		int c1, c2;
+		c1 = READ_CAPTURE(a) - READ_FIGURE(a);
+		c2 = READ_CAPTURE(b) - READ_FIGURE(b);
+		return c1 > c2;
+	}
+};
 
 Position::Position(const Position& position)
 {
-
+	
 }
-
 
 vector<vector<shared_ptr<Figure>>> Position::getFigures() const
 {
@@ -66,35 +80,78 @@ MoveList Position::getFigureMoveList(int figure, int color) const
 	return figures_[color][figure]->getAvailibleMoves(*this);
 }
 
-MoveList Position::getMoves(int color) const
+MoveList Position::getMoves(int color, int movesType) const
 {
 	MoveList moves;
 	for (int type = PAWN; type <= KING; ++type)
-		moves += figures_[color][type]->getAvailibleMoves(*this);
+		moves += figures_[color][type]->getAvailibleMoves(*this, movesType);
+
+	if(movesType != MOVE_TYPE_SILENT)
+		sort(moves.capture.begin(), moves.capture.end(), MvvLva()); // MVV-LVA
+
+	//add castling moves
+	if (movesType != MOVE_TYPE_TAKE)
+	{
+		int from = (color == WHITE) ? 4 : 60;
+
+		if (isCastlingPossible(color, MOVE_TYPE_0_0))
+		{
+			int to = (color == WHITE) ? 6 : 62;
+			moves += CreateListItem(from, to, KING, 0, MOVE_TYPE_0_0, color);
+		}
+		if (isCastlingPossible(color, MOVE_TYPE_0_0_0))
+		{
+			int to = (color == WHITE) ? 2 : 58;
+			moves += CreateListItem(from, to, KING, 0, MOVE_TYPE_0_0_0, color);
+		}
+
+	}
+		
 	return moves;
 }
+
 
 U64 Position::getFigureBoard(int type, int color) const
 {
 	return figures_[color][type]->getBoard();
 }
 
-int Position::getFigureOnSquare(int square) const
+int Position::getFigureOnSquare(int square, int color) const
 {
-	int wFigure = figureFromCoord_[WHITE][square];
-	int bFigure = figureFromCoord_[BLACK][square];
-	
-	if (wFigure == 0)
-		return bFigure;
-	return wFigure;
+	if (figureFromCoord_[BLACK][3] == KING)
+		cout << "";
+	return figureFromCoord_[color][square];
 }
 
 int Position::getSideFiguresCount(int color) const
 {
 	int count = 0;
 	for (int type = PAWN; type <= KING; ++type)
-		count += figures_[color][type]->getFigureCount();
+		count += figures_[color][type]->getCount();
 	return count;
+}
+
+int Position::getFigureCount(int figure, int color)
+{
+	return figures_[color][figure]->getCount();
+}
+
+void Position::empty()
+{
+	*this = Position();
+
+	for (int color = 0; color < 2; ++color)
+	{
+		for (int type = PAWN; type <= KING; ++type)
+		{
+			figures_[color][type]->setBoard(0);
+			figures_[color][type]->setCount(0);
+		}
+		for (int i = 0; i < 64; ++i)
+			figureFromCoord_[color][i] = 0;
+	}
+
+
 }
 
 vector<vector<int>> Position::getFigureFromCoord() const
@@ -153,5 +210,24 @@ bool Position::isKingAttacked(int color) const
 	if (attackers & figures_[color][KING]->getBoard())
 		return true;
 	return false;
+}
+
+bool Position::isCastlingPossible(int color, int castlingType) const
+{
+	if (castlingType == MOVE_TYPE_0_0_0)
+	{
+		U64 castlingBlockers = (color == WHITE ? 0xE : 0xE00000000000000);
+		bool isBlockersBetweenKingAndRook = getSideBoard(color) & castlingBlockers;
+		if (isBlockersBetweenKingAndRook || isKingMoved_[color] || isLshRookMoved_[color])
+			return false;
+	}
+	else if (castlingType == MOVE_TYPE_0_0)
+	{
+		U64 castlingBlockers = (color == WHITE ? 0x60 : 0x6000000000000000);
+		bool isBlockersBetweenKingAndRook = getSideBoard(color) & castlingBlockers;
+		if (isBlockersBetweenKingAndRook || isKingMoved_[color] || isRshRookMoved_[color])
+			return false;
+	}
+	return true;
 }
 

@@ -7,16 +7,13 @@ Figure::Figure() : name_(-1), nFigures_(-1), color_(-1), pieceCost_(-1), board_(
 {
 }
 
-MoveList Figure::getAvailibleMoves(const Position& position)
+MoveList Figure::getAvailibleMoves(const Position& position, int type)
 {
 	MoveList list;
 	int oppositeColor = (color_ == WHITE) ? BLACK : WHITE;
 
 	U64 board = board_;
 
-
-	//U64 blockers = getBlockerPieces(position);
-	//U64 opposite = getOppositePieces(position);
 	U64 blockers = position.getSideBoard(color_);
 	U64 opposite = position.getSideBoard(oppositeColor);
 
@@ -35,30 +32,35 @@ MoveList Figure::getAvailibleMoves(const Position& position)
 
 		int move;
 
-		while (silentMoves)
-		{
-			to = BitScanForward(silentMoves);
+		if (type == ALL || type == MOVE_TYPE_SILENT) {
+			while (silentMoves)
+			{
+				to = BitScanForward(silentMoves);
 
-			move = CreateListItem(from, to, name_, 0, MOVE_TYPE_SILENT, color_);
-			if (position.isMoveLegal(move))
-				list += move;
+				move = CreateListItem(from, to, name_, 0, MOVE_TYPE_SILENT, color_);
+				if (position.isMoveLegal(move))
+					list += move;
 
-			silentMoves &= silentMoves - 1;
-		}
-		int capture;
-		while (captureMoves)
-		{
-			to = BitScanForward(captureMoves);
-			capture = position.getFigureOnSquare(to);
-
-			move = CreateListItem(from, to, PAWN, capture, MOVE_TYPE_TAKE, color_);
-			if (position.isMoveLegal(move))
-				list += move;
-
-			captureMoves &= captureMoves - 1;
+				silentMoves &= silentMoves - 1;
+			}
 		}
 
-		board &= board - 1;
+		if (type == ALL || type == MOVE_TYPE_TAKE) {
+			int capture;
+			while (captureMoves)
+			{
+				to = BitScanForward(captureMoves);
+				capture = position.getFigureOnSquare(to, oppositeColor);
+
+				move = CreateListItem(from, to, name_, capture, MOVE_TYPE_TAKE, color_);
+				if (position.isMoveLegal(move))
+					list += move;
+
+				captureMoves &= captureMoves - 1;
+			}
+
+			board &= board - 1;
+		}
 	}
 	return list;
 }
@@ -89,31 +91,42 @@ void Figure::setColor(int color)
 	color_ = color;
 }
 
+void Figure::setCount(int count)
+{
+	nFigures_ = count;
+}
+
 
 int Figure::getName()
 {
 	return name_;
 }
+
 U64 Figure::getBoard()
 {
 	return board_;
 }
+
 U64 Figure::getColor()
 {
 	return color_;
 }
-int Figure::getFigureCount()
+
+int Figure::getCount()
 {
 	return nFigures_;
 }
+
 int Figure::getCost()
 {
 	return pieceCost_;
 }
+
 int Figure::getPriorityEvalOnSquare(int square)
 {
 	return prioritySquares_[square];
 }
+
 const vector<int>& Figure::getPrioritySquares()
 {
 	return prioritySquares_;
@@ -121,14 +134,16 @@ const vector<int>& Figure::getPrioritySquares()
 
 bool Figure::moveFigure(int old_coordinates, int new_coordinates)
 {
-	bool isFigureExist = (1ULL << old_coordinates) & board_;
-	if (!isFigureExist)
-		return false;
+	//bool isFigureExist = (1ULL << old_coordinates) & board_;
+	//if (!isFigureExist)
+	//	return false;
 
-	U64 newBoard = ~(1ULL << old_coordinates) & board_ | (1ULL << new_coordinates);
+	U64 newBoard = ~(1ULL << old_coordinates) & board_;
+	newBoard |= (1ULL << new_coordinates);
 	board_ = newBoard;
 	return true;
 }
+
 bool Figure::removePiece(int square)
 {
 	bool isFigureOnSquare = (1ULL << square) & board_;
@@ -141,16 +156,20 @@ bool Figure::removePiece(int square)
 	return false;
 
 }
+
 bool Figure::setFigureOnSquare(int square)
 {
-	bool isFigureAlreadyOnSquare = (1ULL << square) & board_;
-	if (isFigureAlreadyOnSquare)
-		return false;
+	//bool isFigureAlreadyOnSquare = (1ULL << square) & board_;
+	//if (isFigureAlreadyOnSquare)
+	//	return false;
 	board_ |= (1ULL << square);
 	nFigures_++;
+	if (nFigures_ > 8)
+		cout << "";
 	return true;
 
 }
+
 vector<int> Figure::getPiecesSquares()
 {
 	vector<int> squares;
@@ -236,7 +255,7 @@ RawMoves Pawn::getMoveBoards(int square, U64 blockers, U64 opposite)
 
 	return moves;
 }
-MoveList Pawn::getAvailibleMoves(const Position& position)
+MoveList Pawn::getAvailibleMoves(const Position& position, int type)
 {
 	MoveList list;
 	int oppositeColor = (color_ == WHITE) ? BLACK : WHITE;
@@ -253,7 +272,7 @@ MoveList Pawn::getAvailibleMoves(const Position& position)
 	RawMoves moves;
 	RawMoves t_moves;
 
-	const U64 TRANSFORM_RANK = (color_ == WHITE ? BLACKPAWN_STARTPOSITION >> 8 : WHITEPAWN_STARTPOSITION << 8);
+	U64 TRANSFORM_RANK = (WHITE == WHITE ? BLACKPAWN_STARTPOSITION << 8 : WHITEPAWN_STARTPOSITION >> 8);
 
 	int from;
 	int to;
@@ -269,57 +288,63 @@ MoveList Pawn::getAvailibleMoves(const Position& position)
 		captureMoves = t_moves.takes;
 
 		move = 0;
-		while (silentMoves)
-		{
-			U64 t1 = board_;
-			to = BitScanForward(silentMoves);
-			isTransformation = (1ULL << to) & TRANSFORM_RANK;
-			if (isTransformation)
-			{
-				for (int i = KNIGHT; i <= QUEEN; ++i)
-				{
-					move = CreateListItem(from, to, PAWN, 0, PAWN_TO_KNIGHT + i - KNIGHT, color_);
-					if (position.isMoveLegal(move))
-						list += move;
-							}
-			}
-			else {
-				move = CreateListItem(from, to, PAWN, 0, MOVE_TYPE_SILENT, color_);
-				if (position.isMoveLegal(move))
-					list += move;
-			}
 
-			silentMoves &= silentMoves - 1;
-
-		}
-		int capture;
-		while (captureMoves)
+		if (type == ALL || type == MOVE_TYPE_SILENT)
 		{
-			to = BitScanForward(captureMoves);
-			capture = position.getFigureOnSquare(to);
-			isTransformation = (1ULL << to) & TRANSFORM_RANK;
-			if (isTransformation)
+			while (silentMoves)
 			{
-				for (int i = KNIGHT; i <= QUEEN; ++i)
+				U64 t1 = board_;
+				to = BitScanForward(silentMoves);
+				isTransformation = (1ULL << to) & TRANSFORM_RANK;
+				if (isTransformation)
 				{
-					move = CreateListItem(from, to, PAWN, capture, PAWN_TO_KNIGHT + i - KNIGHT, color_);
+					for (int i = KNIGHT; i <= QUEEN; ++i)
+					{
+						move = CreateListItem(from, to, PAWN, 0, PAWN_TO_KNIGHT + i - KNIGHT, color_);
+						if (position.isMoveLegal(move))
+							list += move;
+					}
+				}
+				else {
+					move = CreateListItem(from, to, PAWN, 0, MOVE_TYPE_SILENT, color_);
 					if (position.isMoveLegal(move))
 						list += move;
 				}
+				silentMoves &= silentMoves - 1;
 			}
-			else
-			{
-				move = CreateListItem(from, to, PAWN, capture, MOVE_TYPE_TAKE, color_);
-				if (position.isMoveLegal(move))
-					list += move;
-			}
-
-			captureMoves &= captureMoves - 1;
-
 		}
 
-		pawns &= pawns - 1;
+		if (type == ALL || type == MOVE_TYPE_TAKE)
+		{
+			int capture;
+			while (captureMoves)
+			{
+				to = BitScanForward(captureMoves);
+				capture = position.getFigureOnSquare(to, oppositeColor);
+				isTransformation = (1ULL << to) & TRANSFORM_RANK;
+				if (isTransformation)
+				{
+					for (int i = KNIGHT; i <= QUEEN; ++i)
+					{
+						move = CreateListItem(from, to, PAWN, capture, PAWN_TO_KNIGHT + i - KNIGHT, color_);
+						if (position.isMoveLegal(move))
+							list += move;
+					}
+				}
+				else
+				{
+					move = CreateListItem(from, to, PAWN, capture, MOVE_TYPE_TAKE, color_);
+					int n = READ_FIGURE(move);
+					if (position.isMoveLegal(move))
+						list += move;
+				}
+				captureMoves &= captureMoves - 1;
+			}
+
+			pawns &= pawns - 1;
+		}
 	}
+
 	return list;
 }
 U64 Pawn::getAttackBoard(U64 blockers, U64 opposite)
@@ -430,25 +455,6 @@ RawMoves Bishop::getMoveBoards(int square, U64 blockers, U64 opposite)
 	return bishopMoves;
 }
 
-void ShowBits1(U64 bb)
-{
-	int bit;
-	int count = 0;
-
-	int i = 64 - 8;
-	for (; i >= 0; i++) {
-		bit = (bb >> i) & 1;
-		cout << bit << '\t';
-		count++;
-		if (count == 8)
-		{
-			count = 0;
-			i = i - 16;
-			cout << endl;
-		}
-	}
-	cout << endl << endl;
-}
 Rook::Rook()
 {
 	name_ = ROOK;

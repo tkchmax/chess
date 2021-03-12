@@ -25,7 +25,6 @@ public:
 	void setIsLshRookMoved(int color, bool isMoved);
 	void setIsRshRookMoved(int color, bool isMoved);
 
-	void setFEN(string fen);
 
 protected:
 	void _makeShortCastling(int color);

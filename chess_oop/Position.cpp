@@ -53,6 +53,100 @@ public:
 	}
 };
 
+void Position::setFEN(string fen)
+{
+	this->empty();
+
+	int board_cur = 72;
+	int cur = -1;
+	for (int i = 0; i < 8; ++i) {
+		board_cur -= 16;
+		cur++;
+		while (fen[cur] != '/')
+		{
+			switch (fen[cur])
+			{
+			case 'K':
+				figures_[WHITE][KING]->setFigureOnSquare(board_cur);
+				//figures_[WHITE][KING] = 1ULL << board_cur;
+				figureFromCoord_[WHITE][board_cur] = KING;
+				board_cur++;
+				break;
+			case 'k':
+				figures_[BLACK][KING]->setFigureOnSquare(board_cur);
+				//figures_[BLACK][KING] = 1ULL << board_cur;
+				figureFromCoord_[BLACK][board_cur] = KING;
+				board_cur++;
+				break;
+			case 'Q':
+				figures_[WHITE][QUEEN]->setFigureOnSquare(board_cur);
+				//figures_[WHITE][QUEEN] |= 1ULL << board_cur;
+				figureFromCoord_[WHITE][board_cur] = QUEEN;
+				board_cur++;
+				break;
+			case 'q':
+				figures_[BLACK][QUEEN]->setFigureOnSquare(board_cur);
+				//figures_[BLACK][QUEEN] |= 1ULL << board_cur;
+				figureFromCoord_[BLACK][board_cur] = QUEEN;
+				board_cur++;
+				break;
+			case 'B':
+				figures_[WHITE][BISHOP]->setFigureOnSquare(board_cur);
+				//figures_[WHITE][BISHOP] |= 1ULL << board_cur;
+				figureFromCoord_[WHITE][board_cur] = BISHOP;
+				board_cur++;
+				break;
+			case 'b':
+				figures_[BLACK][BISHOP]->setFigureOnSquare(board_cur);
+				//figures_[BLACK][BISHOP] |= 1ULL << board_cur;
+				figureFromCoord_[BLACK][board_cur] = BISHOP;
+				board_cur++;
+				break;
+			case 'N':
+				figures_[WHITE][KNIGHT]->setFigureOnSquare(board_cur);
+				//figures_[WHITE][KNIGHT] |= 1ULL << board_cur;
+				figureFromCoord_[WHITE][board_cur] = KNIGHT;
+				board_cur++;
+				break;
+			case 'n':
+				figures_[BLACK][KNIGHT]->setFigureOnSquare(board_cur);
+				//figures_[BLACK][KNIGHT] |= 1ULL << board_cur;
+				figureFromCoord_[BLACK][board_cur] = KNIGHT;
+				board_cur++;
+				break;
+			case 'P':
+				figures_[WHITE][PAWN]->setFigureOnSquare(board_cur);
+				//figures_[WHITE][PAWN] |= 1ULL << board_cur;
+				figureFromCoord_[WHITE][board_cur] = PAWN;
+				board_cur++;
+				break;
+			case 'p':
+				figures_[BLACK][PAWN]->setFigureOnSquare(board_cur);
+				//figures_[BLACK][PAWN] |= 1ULL << board_cur;
+				figureFromCoord_[BLACK][board_cur] = PAWN;
+				board_cur++;
+				break;
+			case 'R':
+				figures_[WHITE][ROOK]->setFigureOnSquare(board_cur);
+				//figures_[WHITE][ROOK] |= 1ULL << board_cur;
+				figureFromCoord_[WHITE][board_cur] = ROOK;
+				board_cur++;
+				break;
+			case 'r':
+				figures_[BLACK][ROOK]->setFigureOnSquare(board_cur);
+				//figures_[BLACK][ROOK] |= 1ULL << board_cur;
+				figureFromCoord_[BLACK][board_cur] = ROOK;
+				board_cur++;
+				break;
+			default:
+				board_cur += (fen[cur] - '0');
+				break;
+			}
+			cur++;
+		}
+	}
+}
+
 Position::Position(const Position& position)
 {
 	
@@ -116,6 +210,11 @@ U64 Position::getFigureBoard(int type, int color) const
 	return figures_[color][type]->getBoard();
 }
 
+shared_ptr<Figure> Position::getFigure(int figure, int color)
+{
+	return figures_[color][figure];
+}
+
 int Position::getFigureOnSquare(int square, int color) const
 {
 	if (figureFromCoord_[BLACK][3] == KING)
@@ -138,7 +237,7 @@ int Position::getFigureCount(int figure, int color)
 
 void Position::empty()
 {
-	*this = Position();
+	//*this = Position();
 
 	for (int color = 0; color < 2; ++color)
 	{

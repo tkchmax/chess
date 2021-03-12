@@ -32,6 +32,7 @@ public:
 	MoveList getFigureMoveList(int figure, int color) const;
 	MoveList getMoves(int color, int type=ALL) const;
 	U64 getFigureBoard(int figure, int color) const;
+	shared_ptr<Figure> getFigure(int figure, int color);
 
 	int getFigureOnSquare(int square, int color) const ;
 	int getSideFiguresCount(int color) const;
@@ -50,6 +51,9 @@ public:
 	//		cout << "----" << endl;
 	//	}
 	//}
+
+	void setFEN(string fen);
+
 
 protected:
 	vector<vector<shared_ptr<Figure>>> figures_;

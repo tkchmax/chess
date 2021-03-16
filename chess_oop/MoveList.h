@@ -31,10 +31,14 @@ struct MoveList
 	
 	friend void operator+=(MoveList& lsh, const int move);
 	friend void operator+=(MoveList& lsh, const MoveList& rsh);
+	friend bool operator==(const MoveList& lsh, const MoveList& rsh);
 	friend ostream& operator<<(ostream& out, const MoveList& list);
 	std::deque<int>::iterator captureIter;
 
 	int next();
+	int size() const;
+
+
 
 private:
 	std::deque<int>::iterator silentIter;

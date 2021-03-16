@@ -106,6 +106,7 @@ void _initializeRays()
 int main()
 {
 	_initializeRays();
+
 	Game game;
 	Player p1(&game, WHITE);
 	Player p2(&game, BLACK);

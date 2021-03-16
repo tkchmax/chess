@@ -188,6 +188,11 @@ void operator+=(MoveList& lsh, const MoveList& rsh)
 	copy(rsh.silent.begin(), rsh.silent.end(), back_inserter(lsh.silent));
 }
 
+bool operator==(const MoveList& lsh, const MoveList& rsh)
+{
+	return (lsh.silent == rsh.silent) && (lsh.capture == rsh.capture);
+}
+
 
 int MoveList::next()
 {
@@ -206,4 +211,10 @@ int MoveList::next()
 	}
 
 	return 0;
+}
+
+int MoveList::size() const
+{
+	return silent.size() + capture.size();
+
 }

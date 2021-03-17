@@ -2,7 +2,6 @@
 #ifndef _POSITION_
 #define _POSITION_
 
-#include "headers.h"
 #include "Figure.h"
 #include <algorithm>
 

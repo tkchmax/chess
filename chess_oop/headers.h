@@ -78,5 +78,18 @@ typedef unsigned long long U64;
 #define READ_MOVE_TYPE(num) ((num>>18)&15)
 #define READ_COLOR(num) ((num>>22)& 1)
 
+
+//namespace coords
+//{
+//	int a1 = 0;
+//	int b1 = 1;
+//	int c1 = 2;
+//	int d1 = 3;
+//	int e1 = 4;
+//	int f1 = 5;
+//	int g1 = 6;
+//	int h1 = 7;
+//}
+
 #endif // !_HEADERS_H_
 

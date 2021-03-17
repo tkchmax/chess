@@ -163,7 +163,7 @@ namespace tests
 			Assert::AreEqual(moves.silents, EXPECTED_SILENT_MOVES);
 			Assert::AreEqual(moves.takes, EXPECTED_CAPTURE_MOVES);
 
-			
+
 			//Black pawns on a-h(7), c4, f4, h4
 			//Blockers: c3
 			//Captures: e3, g3
@@ -184,7 +184,7 @@ namespace tests
 			_initializeRays();
 			Position start_position;
 
-			shared_ptr<Figure> white_knight = start_position.getFigure(KNIGHT,WHITE);
+			shared_ptr<Figure> white_knight = start_position.getFigure(KNIGHT, WHITE);
 			shared_ptr<Figure> black_knight = start_position.getFigure(KNIGHT, BLACK);
 
 			RawMoves white_moves = GenerateMoves(start_position, white_knight);
@@ -214,7 +214,7 @@ namespace tests
 			position.setFEN("8/8/8/3BRB2/3PNP2/3KQR2/8/8/");
 			EXPECTED_SILENT_MOVES = 0x284400442800;
 			EXPECTED_CAPTURE_MOVES = 0;
-			
+
 			moves = GenerateMoves(position, knight);
 			Assert::AreEqual(moves.silents, EXPECTED_SILENT_MOVES);
 			Assert::AreEqual(moves.takes, EXPECTED_CAPTURE_MOVES);
@@ -224,7 +224,7 @@ namespace tests
 			position.setFEN("8/8/3B1R2/2Q3R1/4N3/2P3R1/3P1R2/8/");
 			EXPECTED_SILENT_MOVES = 0;
 			EXPECTED_CAPTURE_MOVES = 0;
-			
+
 			moves = GenerateMoves(position, knight);
 			Assert::AreEqual(moves.silents, EXPECTED_SILENT_MOVES);
 			Assert::AreEqual(moves.takes, EXPECTED_CAPTURE_MOVES);
@@ -246,7 +246,7 @@ namespace tests
 			position.setFEN("8/8/3R1P2/2q3p1/4N3/2q3p1/3b1b2/8/");
 			EXPECTED_SILENT_MOVES = 0;
 			EXPECTED_CAPTURE_MOVES = 0x4400442800;
-			
+
 			moves = GenerateMoves(position, knight);
 			Assert::AreEqual(moves.silents, EXPECTED_SILENT_MOVES);
 			Assert::AreEqual(moves.takes, EXPECTED_CAPTURE_MOVES);
@@ -340,7 +340,7 @@ namespace tests
 
 			Position start_position;
 
-			shared_ptr<Figure> white_rook = start_position.getFigure(ROOK,WHITE);
+			shared_ptr<Figure> white_rook = start_position.getFigure(ROOK, WHITE);
 			shared_ptr<Figure> black_rook = start_position.getFigure(ROOK, BLACK);
 
 			RawMoves white_moves = GenerateMoves(start_position, start_position.getFigure(ROOK, WHITE));
@@ -385,7 +385,7 @@ namespace tests
 			moves = GenerateMoves(position, rook);
 			Assert::AreEqual(moves.silents, EXPECTED_SILENT_MOVES);
 			Assert::AreEqual(moves.takes, EXPECTED_CAPTURE_MOVES);
-		
+
 			////Rook is on e4
 			////Captures: e6, h4, g4
 			////Blockers: NO
@@ -432,7 +432,7 @@ namespace tests
 			Assert::AreEqual(white_moves.silents, EXPECTED_CAPTURE_MOVES);
 			Assert::AreEqual(black_moves.silents, EXPECTED_CAPTURE_MOVES);
 		}
-		
+
 		TEST_METHOD(GENERATE_QUEEN_MOVES)
 		{
 			_initializeRays();
@@ -473,7 +473,7 @@ namespace tests
 			moves = GenerateMoves(position, queen);
 			Assert::AreEqual(moves.silents, EXPECTED_SILENT_MOVES);
 			Assert::AreEqual(moves.takes, EXPECTED_CAPTURE_MOVES);
-	
+
 
 		}
 	};
@@ -540,6 +540,9 @@ namespace tests
 
 bool isListsEqual(deque<int> list1, deque<int> list2)
 {
+	if (list1.size() != list2.size())
+		return false;
+
 	int size = list1.size();
 	for (int i = 0; i < size; ++i)
 	{
@@ -555,60 +558,275 @@ bool isListsEqual(deque<int> list1, deque<int> list2)
 	return true;
 }
 
-	TEST_CLASS(GENERATE_MOVE_LIST)
+TEST_CLASS(GENERATE_MOVE_LIST)
+{
+	TEST_METHOD(GENERATE_MOVE_LIST_START_POSITION)
 	{
-		TEST_METHOD(GENERATE_MOVE_LIST_START_POSITION)
+		_initializeRays();
+
+		Position start_position;
+		MoveList whiteList = start_position.getMoves(WHITE);
+		MoveList blackList = start_position.getMoves(BLACK);
+
+
+		MoveList WHITE_EXPECTED_LIST, BLACK_EXPECTED_LIST;
+		//white pawns 
+		for (int i = 8; i < 16; ++i)
 		{
-			_initializeRays();
-			
-			Position start_position;
-			MoveList whiteList = start_position.getMoves(WHITE);
-			MoveList blackList = start_position.getMoves(BLACK);
-
-
-			MoveList WHITE_EXPECTED_LIST, BLACK_EXPECTED_LIST;
-			//white pawns 
-			for (int i = 8; i < 16; ++i)
-			{
-				WHITE_EXPECTED_LIST += CreateListItem(i, i + 8, PAWN, 0, MOVE_TYPE_SILENT, WHITE);
-				WHITE_EXPECTED_LIST += CreateListItem(i, i + 16, PAWN, 0, MOVE_TYPE_SILENT, WHITE);
-			}
-			//black pawns
-			for (int i = 55; i >= 48; --i)
-			{
-				BLACK_EXPECTED_LIST += CreateListItem(i, i - 8, PAWN, 0, MOVE_TYPE_SILENT, BLACK);
-				BLACK_EXPECTED_LIST += CreateListItem(i, i - 16, PAWN, 0, MOVE_TYPE_SILENT, BLACK);
-			}
-
-			int b1 = to_square("b1");
-			int g1 = to_square("g1");
-			WHITE_EXPECTED_LIST += CreateListItem(b1, to_square("a3"), KNIGHT, 0, MOVE_TYPE_SILENT, WHITE);
-			WHITE_EXPECTED_LIST += CreateListItem(b1, to_square("c3"), KNIGHT, 0, MOVE_TYPE_SILENT, WHITE);
-			WHITE_EXPECTED_LIST += CreateListItem(g1, to_square("f3"), KNIGHT, 0, MOVE_TYPE_SILENT, WHITE);
-			WHITE_EXPECTED_LIST += CreateListItem(g1, to_square("h3"), KNIGHT, 0, MOVE_TYPE_SILENT, WHITE);
-
-			int b8 = to_square("b8");
-			int g8 = to_square("g8");
-			BLACK_EXPECTED_LIST += CreateListItem(b8, to_square("a6"), KNIGHT, 0, MOVE_TYPE_SILENT, BLACK);
-			BLACK_EXPECTED_LIST += CreateListItem(b8, to_square("c6"), KNIGHT, 0, MOVE_TYPE_SILENT, BLACK);
-			BLACK_EXPECTED_LIST += CreateListItem(g8, to_square("f6"), KNIGHT, 0, MOVE_TYPE_SILENT, BLACK);
-			BLACK_EXPECTED_LIST += CreateListItem(g8, to_square("h6"), KNIGHT, 0, MOVE_TYPE_SILENT, BLACK);
-
-
-			Assert::AreEqual(blackList.size(), BLACK_EXPECTED_LIST.size());
-			Assert::AreEqual(whiteList.size(), WHITE_EXPECTED_LIST.size());
-			//white moves
-			bool isWhiteSilentListsEqual = isListsEqual(whiteList.silent, WHITE_EXPECTED_LIST.silent);
-			bool isWhiteCaptureListsEqual = isListsEqual(whiteList.capture, WHITE_EXPECTED_LIST.capture);
-			if (!isWhiteSilentListsEqual || !isWhiteCaptureListsEqual)
-				Assert::Fail();
-			//black moves;
-			bool isBlackListsEqual = isListsEqual(blackList.silent, BLACK_EXPECTED_LIST.silent);
-			bool isBlackCaptureListsEqual = isListsEqual(blackList.capture, BLACK_EXPECTED_LIST.capture);
-			if (!isBlackListsEqual || !isBlackCaptureListsEqual)
-				Assert::Fail();
-
-
+			WHITE_EXPECTED_LIST += CreateListItem(i, i + 8, PAWN, 0, MOVE_TYPE_SILENT, WHITE);
+			WHITE_EXPECTED_LIST += CreateListItem(i, i + 16, PAWN, 0, MOVE_TYPE_SILENT, WHITE);
 		}
-	};
+		//black pawns
+		for (int i = 55; i >= 48; --i)
+		{
+			BLACK_EXPECTED_LIST += CreateListItem(i, i - 8, PAWN, 0, MOVE_TYPE_SILENT, BLACK);
+			BLACK_EXPECTED_LIST += CreateListItem(i, i - 16, PAWN, 0, MOVE_TYPE_SILENT, BLACK);
+		}
+
+		int b1 = to_square("b1");
+		int g1 = to_square("g1");
+		WHITE_EXPECTED_LIST += CreateListItem(b1, to_square("a3"), KNIGHT, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(b1, to_square("c3"), KNIGHT, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(g1, to_square("f3"), KNIGHT, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(g1, to_square("h3"), KNIGHT, 0, MOVE_TYPE_SILENT, WHITE);
+
+		int b8 = to_square("b8");
+		int g8 = to_square("g8");
+		BLACK_EXPECTED_LIST += CreateListItem(b8, to_square("a6"), KNIGHT, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(b8, to_square("c6"), KNIGHT, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(g8, to_square("f6"), KNIGHT, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(g8, to_square("h6"), KNIGHT, 0, MOVE_TYPE_SILENT, BLACK);
+
+
+		Assert::AreEqual(blackList.size(), BLACK_EXPECTED_LIST.size());
+		Assert::AreEqual(whiteList.size(), WHITE_EXPECTED_LIST.size());
+		//white moves
+		bool isWhiteSilentListsEqual = isListsEqual(whiteList.silent, WHITE_EXPECTED_LIST.silent);
+		bool isWhiteCaptureListsEqual = isListsEqual(whiteList.capture, WHITE_EXPECTED_LIST.capture);
+		if (!isWhiteSilentListsEqual || !isWhiteCaptureListsEqual)
+			Assert::Fail();
+		//black moves;
+		bool isBlackListsEqual = isListsEqual(blackList.silent, BLACK_EXPECTED_LIST.silent);
+		bool isBlackCaptureListsEqual = isListsEqual(blackList.capture, BLACK_EXPECTED_LIST.capture);
+		if (!isBlackListsEqual || !isBlackCaptureListsEqual)
+			Assert::Fail();
+
+
+	}
+	TEST_METHOD(GENERATE_PAWN_LIST)
+	{
+		_initializeRays();
+		Position position;
+		position.setFEN("rnb1k1nr/ppp2ppp/8/3ppq2/2PP1BP1/b7/PP2PP1P/RN1QKBNR/");
+
+		MoveList WHITE_EXPECTED_LIST, BLACK_EXPECTED_LIST;
+		MoveList whiteList = position.getFigureMoveList(PAWN, WHITE);
+		MoveList blackList = position.getFigureMoveList(PAWN, BLACK);
+
+		// white pawns
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("b2"), to_square("b3"), PAWN, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("b2"), to_square("b4"), PAWN, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("b2"), to_square("a3"), PAWN, BISHOP, MOVE_TYPE_TAKE, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("c4"), to_square("c5"), PAWN, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("c4"), to_square("d5"), PAWN, PAWN, MOVE_TYPE_TAKE, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("d4"), to_square("e5"), PAWN, PAWN, MOVE_TYPE_TAKE, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("e2"), to_square("e3"), PAWN, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("e2"), to_square("e4"), PAWN, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("f2"), to_square("f3"), PAWN, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("g4"), to_square("g5"), PAWN, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("g4"), to_square("f5"), PAWN, QUEEN, MOVE_TYPE_TAKE, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("h2"), to_square("h3"), PAWN, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("h2"), to_square("h4"), PAWN, 0, MOVE_TYPE_SILENT, WHITE);
+
+		//black pawns 
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("a7"), to_square("a6"), PAWN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("a7"), to_square("a5"), PAWN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("b7"), to_square("b6"), PAWN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("b7"), to_square("b5"), PAWN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("c7"), to_square("c6"), PAWN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("c7"), to_square("c5"), PAWN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("d5"), to_square("c4"), PAWN, PAWN, MOVE_TYPE_TAKE, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("e5"), to_square("d4"), PAWN, PAWN, MOVE_TYPE_TAKE, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("e5"), to_square("f4"), PAWN, BISHOP, MOVE_TYPE_TAKE, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("e5"), to_square("e4"), PAWN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("f7"), to_square("f6"), PAWN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("g7"), to_square("g6"), PAWN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("g7"), to_square("g5"), PAWN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("h7"), to_square("h6"), PAWN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("h7"), to_square("h5"), PAWN, 0, MOVE_TYPE_SILENT, BLACK);
+
+		bool isWhiteSilentListsEqual = isListsEqual(whiteList.silent, WHITE_EXPECTED_LIST.silent);
+		bool isWhiteCaptureListsEqual = isListsEqual(whiteList.capture, WHITE_EXPECTED_LIST.capture);
+		if (!isWhiteSilentListsEqual || !isWhiteCaptureListsEqual)
+			Assert::Fail();
+	}
+	TEST_METHOD(GENERATE_KNGIHT_LIST)
+	{
+		_initializeRays();
+		Position position;
+		position.setFEN("rnb1k1nr/ppp2ppp/8/3ppq2/2PP1BP1/b7/PP2PP1P/RN1QKBNR/");
+
+		MoveList WHITE_EXPECTED_LIST, BLACK_EXPECTED_LIST;
+		MoveList whiteList = position.getFigureMoveList(KNIGHT, WHITE);
+		MoveList blackList = position.getFigureMoveList(KNIGHT, BLACK);
+		//white knights
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("b1"), to_square("a3"), KNIGHT, BISHOP, MOVE_TYPE_TAKE, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("b1"), to_square("c3"), KNIGHT, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("b1"), to_square("d2"), KNIGHT, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("g1"), to_square("f3"), KNIGHT, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("g1"), to_square("h3"), KNIGHT, 0, MOVE_TYPE_SILENT, WHITE);
+
+		//black knights
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("b8"), to_square("a6"), KNIGHT, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("b8"), to_square("c6"), KNIGHT, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("b8"), to_square("d7"), KNIGHT, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("g8"), to_square("e7"), KNIGHT, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("g8"), to_square("f6"), KNIGHT, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("g8"), to_square("h6"), KNIGHT, 0, MOVE_TYPE_SILENT, BLACK);
+
+		bool isWhiteSilentListsEqual = isListsEqual(whiteList.silent, WHITE_EXPECTED_LIST.silent);
+		bool isWhiteCaptureListsEqual = isListsEqual(whiteList.capture, WHITE_EXPECTED_LIST.capture);
+		if (!isWhiteSilentListsEqual || !isWhiteCaptureListsEqual)
+			Assert::Fail();
+	}
+	TEST_METHOD(GENERATE_BISHOP_LIST)
+	{
+		_initializeRays();
+		Position position;
+		position.setFEN("rnb1k1nr/ppp2ppp/8/3ppq2/2PP1BP1/b7/PP2PP1P/RN1QKBNR/");
+
+		MoveList WHITE_EXPECTED_LIST, BLACK_EXPECTED_LIST;
+		MoveList whiteList = position.getFigureMoveList(BISHOP, WHITE);
+		MoveList blackList = position.getFigureMoveList(BISHOP, BLACK);
+		//white bishop
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("f1"), to_square("g2"), BISHOP, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("f1"), to_square("h3"), BISHOP, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("f4"), to_square("e5"), BISHOP, PAWN, MOVE_TYPE_TAKE, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("f4"), to_square("e3"), BISHOP, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("f4"), to_square("d2"), BISHOP, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("f4"), to_square("c1"), BISHOP, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("f4"), to_square("g5"), BISHOP, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("f4"), to_square("h6"), BISHOP, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("f4"), to_square("g3"), BISHOP, 0, MOVE_TYPE_SILENT, WHITE);
+
+		//black bishops
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("c8"), to_square("d7"), BISHOP, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("c8"), to_square("e6"), BISHOP, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("a3"), to_square("b4"), BISHOP, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("a3"), to_square("c5"), BISHOP, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("a3"), to_square("d6"), BISHOP, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("a3"), to_square("e7"), BISHOP, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("a3"), to_square("f8"), BISHOP, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("a3"), to_square("b2"), BISHOP, PAWN, MOVE_TYPE_TAKE, BLACK);
+
+		bool isWhiteSilentListsEqual = isListsEqual(whiteList.silent, WHITE_EXPECTED_LIST.silent);
+		bool isWhiteCaptureListsEqual = isListsEqual(whiteList.capture, WHITE_EXPECTED_LIST.capture);
+		if (!isWhiteSilentListsEqual || !isWhiteCaptureListsEqual)
+			Assert::Fail();
+	}
+	TEST_METHOD(GENERATE_ROOK_LIST)
+	{
+		_initializeRays();
+		Position position;
+		position.setFEN("r1b1k2r/1pp2pp1/8/2Rppq2/2P2BP1/b6N/PP2PP1P/R3KB2/");
+
+		MoveList WHITE_EXPECTED_LIST, BLACK_EXPECTED_LIST;
+		MoveList whiteList = position.getFigureMoveList(ROOK, WHITE);
+		MoveList blackList = position.getFigureMoveList(ROOK, BLACK);
+
+		//white rooks
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("a1"), to_square("b1"), ROOK, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("a1"), to_square("c1"), ROOK, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("a1"), to_square("d1"), ROOK, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("c5"), to_square("c6"), ROOK, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("c5"), to_square("b5"), ROOK, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("c5"), to_square("a5"), ROOK, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("c5"), to_square("c7"), ROOK, PAWN, MOVE_TYPE_TAKE, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("c5"), to_square("d5"), ROOK, PAWN, MOVE_TYPE_TAKE, WHITE);
+		//black rooks
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("a8"), to_square("a7"), ROOK, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("a8"), to_square("a6"), ROOK, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("a8"), to_square("a5"), ROOK, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("a8"), to_square("a4"), ROOK, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("a8"), to_square("b8"), ROOK, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("h8"), to_square("h7"), ROOK, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("h8"), to_square("h6"), ROOK, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("h8"), to_square("h5"), ROOK, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("h8"), to_square("h4"), ROOK, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("h8"), to_square("g8"), ROOK, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("h8"), to_square("f8"), ROOK, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("h8"), to_square("h3"), ROOK, KNIGHT, MOVE_TYPE_TAKE, BLACK);
+
+		bool isWhiteSilentListsEqual = isListsEqual(whiteList.silent, WHITE_EXPECTED_LIST.silent);
+		bool isWhiteCaptureListsEqual = isListsEqual(blackList.capture, BLACK_EXPECTED_LIST.capture);
+		if (!isWhiteSilentListsEqual || !isWhiteCaptureListsEqual)
+			Assert::Fail();
+	}
+	TEST_METHOD(GENERATE_QUEEN_LIST)
+	{
+		_initializeRays();
+		Position position;
+		position.setFEN("rnb1k1nr/ppp2ppp/8/3ppq2/2PP1BP1/b7/PP2PP1P/RN1QKBNR/");
+
+		MoveList WHITE_EXPECTED_LIST, BLACK_EXPECTED_LIST;
+		MoveList whiteList = position.getFigureMoveList(QUEEN, WHITE);
+		MoveList blackList = position.getFigureMoveList(QUEEN, BLACK);
+		//white queen
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("d1"), to_square("c1"), QUEEN, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("d1"), to_square("c2"), QUEEN, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("d1"), to_square("b3"), QUEEN, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("d1"), to_square("a4"), QUEEN, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("d1"), to_square("d2"), QUEEN, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("d1"), to_square("d3"), QUEEN, 0, MOVE_TYPE_SILENT, WHITE);
+
+		//black queen
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("f5"), to_square("e6"), QUEEN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("f5"), to_square("d7"), QUEEN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("f5"), to_square("g5"), QUEEN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("f5"), to_square("h5"), QUEEN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("f5"), to_square("g6"), QUEEN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("f5"), to_square("f6"), QUEEN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("f5"), to_square("e4"), QUEEN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("f5"), to_square("d3"), QUEEN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("f5"), to_square("c2"), QUEEN, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("f5"), to_square("b1"), QUEEN, KNIGHT, MOVE_TYPE_TAKE, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("f5"), to_square("f4"), QUEEN, BISHOP, MOVE_TYPE_TAKE, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("f5"), to_square("g4"), QUEEN, PAWN, MOVE_TYPE_TAKE, BLACK);
+
+		bool isWhiteSilentListsEqual = isListsEqual(whiteList.silent, WHITE_EXPECTED_LIST.silent);
+		bool isWhiteCaptureListsEqual = isListsEqual(whiteList.capture, WHITE_EXPECTED_LIST.capture);
+		if (!isWhiteSilentListsEqual || !isWhiteCaptureListsEqual)
+			Assert::Fail();
+	}
+	TEST_METHOD(GENERATE_KING_LIST)
+	{
+		_initializeRays();
+		Position position;
+		position.setFEN("r1b1k2r/1pp2Np1/8/2Rppq2/2P2BP1/b6N/PP2qp1P/R3KB2/");
+
+		MoveList WHITE_EXPECTED_LIST, BLACK_EXPECTED_LIST;
+		MoveList whiteList = position.getFigureMoveList(KING, WHITE);
+		MoveList blackList = position.getFigureMoveList(KING, BLACK);
+
+		//white king
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("e1"), to_square("d1"), KING, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("e1"), to_square("d2"), KING, 0, MOVE_TYPE_SILENT, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("e1"), to_square("e2"), KING, QUEEN, MOVE_TYPE_TAKE, WHITE);
+		WHITE_EXPECTED_LIST += CreateListItem(to_square("e1"), to_square("f2"), KING, PAWN, MOVE_TYPE_TAKE, WHITE);
+		
+		//black king
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("e8"), to_square("d8"), KING, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("e8"), to_square("d7"), KING, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("e8"), to_square("e7"), KING, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("e8"), to_square("f8"), KING, 0, MOVE_TYPE_SILENT, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("e8"), to_square("g8"), KING, 0, MOVE_TYPE_0_0, BLACK);
+		BLACK_EXPECTED_LIST += CreateListItem(to_square("e8"), to_square("f7"), KING, KNIGHT, MOVE_TYPE_TAKE, BLACK);
+
+		bool isWhiteSilentListsEqual = isListsEqual(whiteList.silent, WHITE_EXPECTED_LIST.silent);
+		bool isWhiteCaptureListsEqual = isListsEqual(whiteList.capture, WHITE_EXPECTED_LIST.capture);
+		if (!isWhiteSilentListsEqual || !isWhiteCaptureListsEqual)
+			Assert::Fail();
+
+	}
+};
 

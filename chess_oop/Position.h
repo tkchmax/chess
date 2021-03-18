@@ -4,6 +4,7 @@
 
 #include "Figure.h"
 #include <algorithm>
+#include <sstream>
 
 class Figure;
 
@@ -40,18 +41,9 @@ public:
 
 	void empty();
 
-	//void D()
-	//{
-	//	for (int i = 0; i < 2; ++i)
-	//	{
-	//		cout << isKingMoved_[i]<<endl;
-	//		cout << isLshRookMoved_[i]<<endl;
-	//		cout << isRshRookMoved_[i]<<endl;
-	//		cout << "----" << endl;
-	//	}
-	//}
-
 	void setFEN(string fen);
+	string getFEN();
+	string getFigureIdOnSquare(int square);
 
 
 protected:

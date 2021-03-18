@@ -147,9 +147,122 @@ void Position::setFEN(string fen)
 	}
 }
 
+
+string Position::getFigureIdOnSquare(int square)
+{
+	int whiteFigure = figureFromCoord_[WHITE][square];
+	int blackFigure = figureFromCoord_[BLACK][square];
+	if (whiteFigure != 0 && blackFigure != 0)
+		cout << "";
+
+	string figure;
+	if (whiteFigure)
+	{
+		switch (whiteFigure)
+		{
+		case PAWN:
+			figure = "P";
+			break;
+		case KNIGHT:
+			figure = "N";
+			break;
+		case BISHOP:
+			figure = "B";
+			break;
+		case ROOK:
+			figure = "R";
+			break;
+		case QUEEN:
+			figure = "Q";
+			break;
+		case KING:
+			figure = "K";
+			break;
+		}
+	}
+	else if (blackFigure)
+	{
+		switch (blackFigure)
+		{
+		case PAWN:
+			figure = "p";
+			break;
+		case KNIGHT:
+			figure = "n";
+			break;
+		case BISHOP:
+			figure = "b";
+			break;
+		case ROOK:
+			figure = "r";
+			break;
+		case QUEEN:
+			figure = "q";
+			break;
+		case KING:
+			figure = "k";
+			break;
+		}
+	}
+	else
+	{
+		figure = "0";
+	}
+
+	return figure;
+}
+string Position::getFEN()
+{
+	string fen;
+	int noFigureCount = 0;
+
+	string cur;
+	
+	vector<vector<string>> lines(8, vector<string>(8));
+
+	for (int i = 0; i < 64; ++i)
+	{
+		lines[i / 8][i % 8] = getFigureIdOnSquare(i);
+	}
+
+	for (int i = 7; i >= 0; --i)
+	{
+		for (int j = 0; j < 8; ++j)
+		{
+			cur = lines[i][j];
+			if (cur != "0")
+			{
+				if (noFigureCount)
+				{
+					ostringstream ss;
+					ss << noFigureCount;
+					fen += ss.str();
+					noFigureCount = 0;
+				}
+				fen += cur;
+			}
+			else
+				noFigureCount++;
+		}
+		
+		if (noFigureCount)
+		{
+			ostringstream ss;
+			ss << noFigureCount;
+			fen += ss.str();
+			noFigureCount = 0;
+		}
+		fen += "/";
+		cout << endl;
+	}
+
+	
+	return fen;
+}
+
 Position::Position(const Position& position)
 {
-	
+
 }
 
 vector<vector<shared_ptr<Figure>>> Position::getFigures() const
@@ -180,7 +293,7 @@ MoveList Position::getMoves(int color, int movesType) const
 	for (int type = PAWN; type <= KING; ++type)
 		moves += figures_[color][type]->getAvailibleMoves(*this, movesType);
 
-	if(movesType != MOVE_TYPE_SILENT)
+	if (movesType != MOVE_TYPE_SILENT)
 		sort(moves.capture.begin(), moves.capture.end(), MvvLva()); // MVV-LVA
 
 	//add castling moves
@@ -200,7 +313,7 @@ MoveList Position::getMoves(int color, int movesType) const
 		}
 
 	}
-		
+
 	return moves;
 }
 
@@ -315,7 +428,7 @@ bool Position::isCastlingPossible(int color, int castlingType) const
 {
 	if (castlingType == MOVE_TYPE_0_0_0)
 	{
-		U64 castlingBlockers = (color == WHITE ? 0xE : 0xE00000000000000);
+	U64 castlingBlockers = (color == WHITE ? 0xE : 0xE00000000000000);
 		bool isBlockersBetweenKingAndRook = getSideBoard(color) & castlingBlockers;
 		if (isBlockersBetweenKingAndRook || isKingMoved_[color] || isLshRookMoved_[color])
 			return false;

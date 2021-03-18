@@ -81,6 +81,9 @@ void Player::applyMove(int move)
 	//madedMoves[move_color].push_back(move);
 
 	cout << "eval after make move\t" << game_->evaluate(move_color) << endl;
+
+	string notation = game_->saveNotationOfMove(move);
+	cout << notation<<endl;
 }
 
 int Player::_quies(int alpha, int beta, int color)

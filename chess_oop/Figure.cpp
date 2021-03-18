@@ -272,7 +272,7 @@ MoveList Pawn::getAvailibleMoves(const Position& position, int type)
 	RawMoves moves;
 	RawMoves t_moves;
 
-	U64 TRANSFORM_RANK = (WHITE == WHITE ? BLACKPAWN_STARTPOSITION << 8 : WHITEPAWN_STARTPOSITION >> 8);
+	U64 TRANSFORM_RANK = (color_ == WHITE ? BLACKPAWN_STARTPOSITION << 8 : WHITEPAWN_STARTPOSITION >> 8);
 
 	int from;
 	int to;

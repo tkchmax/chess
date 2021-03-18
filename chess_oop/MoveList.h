@@ -22,6 +22,8 @@ struct RawMoves
 		silents |= moves.silents;
 		takes |= moves.takes;
 	}
+
+	bool empty();
 };
 
 struct MoveList
@@ -37,6 +39,7 @@ struct MoveList
 
 	int next();
 	int size() const;
+	bool empty() const;
 
 
 

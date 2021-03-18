@@ -107,12 +107,17 @@ int main()
 {
 	_initializeRays();
 
+
 	Game game;
 	Player p1(&game, WHITE);
 	Player p2(&game, BLACK);
+
+	//game.setFEN("7k/8/P7/1P1N4/8/3K4/7p/r7/");
+	//game.setIsKingMoved(WHITE, true);
+	//game.setIsKingMoved(BLACK, true);
 	
-	
-	//game.setFEN("r2qkb1r/p1p2ppp/2p1pn2/3p4/3P4/2N1PQ2/PPP2PPP/R1B1K2R/");
+	//p2.alphaBeta(4, -INF, INF);
+
 
 	//for (int i = 0; i < 5; ++i)
 	//{
@@ -128,10 +133,12 @@ int main()
 	//	ShowBits(game.getFigureBoard(i, BLACK));
 	//ShowBoardVector(game.getFigureFromCoord(), BLACK);
 
-	for (int i = 0; i < 20; ++i)
+
+	for (int i = 0; i < 60; ++i)
 	{
 		p1.alphaBeta(4, -INF, INF);
 		p2.alphaBeta(4, -INF, INF);
 	}
+	cout << game.getPGN();
 }
 

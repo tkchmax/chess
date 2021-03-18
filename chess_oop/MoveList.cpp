@@ -116,16 +116,17 @@ string ConvertMoveType(int number)
 		return "LONG_CASTLING";
 	case 4:
 		return "2_SQUARE_PAWN_MOVE";
-	case 6:
-		return "PAWN_TRANSFORMATION";
-	case 7:
+	case 5:
 		return "PAWN_TO_KNIGHT";
-	case 8:
+	case 6:
 		return "PAWN_TO_BISHOP";
-	case 9:
+	case 7:
 		return "PAWN_TO_ROOK";
-	case 10:
+	case 8:
 		return "PAWN_TO_QUEEN";
+	default:
+		cout << "";
+		break;
 	}
 }
 
@@ -217,4 +218,16 @@ int MoveList::size() const
 {
 	return silent.size() + capture.size();
 
+}
+
+bool MoveList::empty() const
+{
+	return silent.empty() & capture.empty();
+}
+
+bool RawMoves::empty()
+{
+	if (silents == 0 && takes == 0)
+		return true;
+	return false;
 }

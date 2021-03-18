@@ -14,9 +14,9 @@ int CountHighBits(U64 bitboard)
 
 Game::Game()
 {
-	firstKingMove = vector<int>(2);
-	firstLshRookMove = vector<int>(2);
-	firstRshRookMove = vector<int>(2);
+	firstKingMove_ = vector<int>(2);
+	firstLshRookMove_ = vector<int>(2);
+	firstRshRookMove_ = vector<int>(2);
 }
 
 void Game::makeMove(int move)
@@ -33,7 +33,7 @@ void Game::makeMove(int move)
 
 	if (move_figure == KING && !isKingMoved_[move_color])
 	{
-		firstKingMove[move_color] = move;
+		firstKingMove_[move_color] = move;
 		isKingMoved_[move_color] = true;
 	}
 	else if (move_figure == ROOK)
@@ -42,12 +42,12 @@ void Game::makeMove(int move)
 		int rshRookStartPosition = (move_color == WHITE) ? 7 : 63;
 		if (!isLshRookMoved_[move_color] && move_from == lshRookStartPosition)
 		{
-			firstLshRookMove[move_color] = move;
+			firstLshRookMove_[move_color] = move;
 			isLshRookMoved_[move_color] = true;
 		}
 		else if (!isRshRookMoved_[move_color] && move_from == rshRookStartPosition)
 		{
-			firstRshRookMove[move_color] = move;
+			firstRshRookMove_[move_color] = move;
 			isRshRookMoved_[move_color] = true;
 		}
 	}
@@ -99,17 +99,17 @@ void Game::undoMove(int move)
 
 	int oppositeColor = (move_color == WHITE ? BLACK : WHITE);
 
-	if (move_figure == KING && move == firstKingMove[move_color])
+	if (move_figure == KING && move == firstKingMove_[move_color])
 	{
 		isKingMoved_[move_color] = false;
 	}
 	else if (move_figure == ROOK)
 	{
-		if (move == firstLshRookMove[move_color])
+		if (move == firstLshRookMove_[move_color])
 		{
 			isLshRookMoved_[move_color] = false;
 		}
-		else if (move == firstRshRookMove[move_color])
+		else if (move == firstRshRookMove_[move_color])
 		{
 			isRshRookMoved_[move_color] = false;
 		}
@@ -248,6 +248,158 @@ void Game::setIsRshRookMoved(int color, bool isMoved)
 	isRshRookMoved_[color] = isMoved;
 }
 
+
+bool isExpandedNotationNedded(const Game* game, int figure_type, int move)
+{
+	int color = READ_COLOR(move);
+	int oppositeColor = (color == WHITE) ? BLACK : WHITE;
+	int move_to = READ_TO(move);
+
+	U64 board = game->getFigureBoard(figure_type, color) & ~(1ULL << move_to);
+	
+	shared_ptr<Figure> figure;
+	switch (figure_type)
+	{
+	case ROOK:
+		figure = shared_ptr<Rook>(new Rook(color));
+		break;
+	case BISHOP:
+		figure = shared_ptr<Bishop>(new Bishop(color));
+		break;
+	case QUEEN:
+		figure = shared_ptr<Queen>(new Queen(color));
+		break;
+	case KNIGHT:
+		figure = shared_ptr<Knight>(new Knight(color));
+	default:
+		cout << "";
+		break;
+	}
+
+	figure->setBoard(board);
+	U64 blockers = game->getSideBoard(color) & ~(1ULL << move_to);
+	U64 opposite = game->getSideBoard(oppositeColor);
+
+	while (board)
+	{
+		int from = BitScanForward(board);
+		RawMoves moves = figure->getMoveBoards(from, blockers, opposite);
+
+		bool isExpandedNotationNedded = (moves.silents & (1ULL << move_to) || (moves.takes & (1ULL << move_to)));
+
+		if (isExpandedNotationNedded)
+			return true;
+		board &= board - 1;
+	}
+	return false;
+}
+
+string Game::saveNotationOfMove(int move)
+{
+	int figure = READ_FIGURE(move);
+	int move_from = READ_FROM(move);
+	int move_to = READ_TO(move);
+	int move_type = READ_MOVE_TYPE(move);
+	int capture = READ_CAPTURE(move);
+	int move_color = READ_COLOR(move);
+	int oppositeColor = (move_color == WHITE) ? BLACK : WHITE;
+	string s_figure = "";
+	string s_capture = "";
+	string identify = "";
+	string transform = "";
+
+	stringstream notation;
+
+	switch (move_type)
+	{
+	case PAWN_TO_KNIGHT:
+		transform = "=N";
+		break;
+	case PAWN_TO_BISHOP:
+		transform = "=B";
+		break;
+	case PAWN_TO_ROOK:
+		transform = "=R";
+		break;
+	case PAWN_TO_QUEEN:
+		transform = "=Q";
+		break;
+	case MOVE_TYPE_0_0:
+		notation << "O-O";
+		rawPGN_.push_back(notation.str());
+		return notation.str();
+	case MOVE_TYPE_0_0_0:
+		notation << "O-O-O";
+		rawPGN_.push_back(notation.str());
+		return notation.str();
+	}
+
+	switch (figure)
+	{
+	case PAWN:
+		if (move_type == MOVE_TYPE_TAKE)
+		{
+
+		}
+		break;
+	case KNIGHT:
+		s_figure = 'N';
+		break;
+	case BISHOP:
+	{
+		s_figure = 'B';
+		bool expandedNotation = isExpandedNotationNedded(this, BISHOP, move);
+		if (expandedNotation)
+			identify = toCoord(move_from)[0];
+	}
+	break;
+	case ROOK:
+	{
+		s_figure = 'R';
+		bool expandedNotation = isExpandedNotationNedded(this, ROOK, move);
+		if (expandedNotation)
+			identify = toCoord(move_from)[0];
+		break;
+	}
+	case QUEEN:
+	{
+		s_figure = 'Q';
+		bool expandedNotation = isExpandedNotationNedded(this, QUEEN, move);
+		if (expandedNotation)
+			identify = toCoord(move_from)[0];
+	}
+
+	break;
+	case KING:
+		s_figure = 'K';
+		break;
+	}
+
+	if (figure == PAWN && move_type == MOVE_TYPE_TAKE) {
+		s_capture = toCoord(move_from)[0];
+		s_capture = s_capture + "x";
+	}
+	else if (move_type == MOVE_TYPE_TAKE) s_capture = "x";
+
+
+
+	notation << s_figure << identify << s_capture << toCoord(move_to) << transform;
+	rawPGN_.push_back(notation.str());
+	return notation.str();
+}
+
+string Game::getPGN()
+{
+	stringstream pgn;
+	for (int i = 0; i < rawPGN_.size(); i += 2)
+	{
+		pgn << i << ". " << rawPGN_[i];
+		if (i + 1 < rawPGN_.size())
+			pgn << " " << rawPGN_[i + 1] << " ";
+	}
+	return pgn.str();
+}
+
 void Game::_makeShortCastling(int color)
 {
 	isRshRookMoved_[color] = true;
@@ -316,3 +468,16 @@ void Game::_undoPawnTransform(int move_from, int transform_in, int transform_squ
 	figureFromCoord_[color][transform_square] = 0;
 }
 
+string Game::toCoord(int number)
+{
+	char rank = char((number / 8) + '1');
+	char file = char(number % 8 + 'a');
+
+	stringstream ss;
+	ss << file << rank;
+
+	string coord;
+	ss >> coord;
+
+	return coord;
+}

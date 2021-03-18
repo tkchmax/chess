@@ -25,6 +25,11 @@ public:
 	void setIsLshRookMoved(int color, bool isMoved);
 	void setIsRshRookMoved(int color, bool isMoved);
 
+	string saveNotationOfMove(int move);
+
+	string getPGN();
+
+
 
 protected:
 	void _makeShortCastling(int color);
@@ -35,13 +40,17 @@ protected:
 	void _undoLongCastling(int color); 
 	void _undoPawnTransform(int move_from, int transform_in, int square, int color);
 
+	string toCoord(int number);
+
 
 protected:
 	bool game_over;
 private:
-	vector<int> firstKingMove;
-	vector<int> firstLshRookMove;
-	vector<int> firstRshRookMove;
+	vector<int> firstKingMove_;
+	vector<int> firstLshRookMove_;
+	vector<int> firstRshRookMove_;
+
+	vector<string> rawPGN_;
 
 
 };

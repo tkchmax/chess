@@ -30,6 +30,7 @@ struct MoveList
 {
 	deque<int> silent;
 	deque<int> capture;
+	deque<int> killer;
 	
 	friend void operator+=(MoveList& lsh, const int move);
 	friend void operator+=(MoveList& lsh, const MoveList& rsh);
@@ -41,10 +42,6 @@ struct MoveList
 	int size() const;
 	bool empty() const;
 
-
-
-private:
-	std::deque<int>::iterator silentIter;
 };
 
 int CreateListItem(int from, int to, int figure, int capture, int move_type, int color);

@@ -197,7 +197,12 @@ bool operator==(const MoveList& lsh, const MoveList& rsh)
 
 int MoveList::next()
 {
-
+	if (!killer.empty())
+	{
+		int temp = killer[0];
+		killer.pop_front();
+		return temp;
+	}
 	if (!capture.empty())
 	{	
 		int temp = capture[0];

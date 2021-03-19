@@ -16,7 +16,10 @@ private:
 	int color_;
 	int _alphaBeta(int depth, int alpha, int beta, int color);
 	int _quies(int alpha, int beta, int color);
+	void _addKillerMove(int ply, int move);
+	void _sortMoveList(int ply, MoveList& moveList);
 
+	vector<vector<int>> killerMoves_;
 };
 
 

@@ -10,36 +10,70 @@ Player::Player(Game* game, int color)
 	color_ = color;
 }
 
+void Player::_addKillerMove(int ply, int move)
+{
+	auto searchIter = find(killerMoves_[ply].begin(), killerMoves_[ply].end(), move);
+	if (searchIter == killerMoves_[ply].end())
+	{
+		for (int i = killerMoves_[ply].size() - 2; i >= 0; --i)
+			killerMoves_[ply][i + 1] = killerMoves_[ply][i];
+		killerMoves_[ply][0] = move;
+	}
+}
+
+void Player::_sortMoveList(int ply, MoveList& moveList)
+{
+	//Find killer moves and set them on top of the list 
+	for (int i = 0; i < killerMoves_[ply].size(); ++i)
+	{
+		int killer = killerMoves_[ply][i];
+		for (auto iter = moveList.silent.begin(); iter != moveList.silent.end();)
+		{
+			if (*iter == killer)
+			{
+				moveList.killer.push_back(*iter);
+				iter = moveList.silent.erase(iter);
+			}
+			else
+				iter++;
+		}
+	}		
+}
+
 int Player::alphaBeta(int depth, int alpha, int beta)
 {
 	DEPTH = depth;
+	killerMoves_ = vector<vector<int>>(depth, vector<int>(3));
 	return _alphaBeta(depth, alpha, beta, color_);
 }
 
+int ply = 0;
 int Player::_alphaBeta(int depth, int alpha, int beta, int color)
 {
 	if (depth == 0) return _quies(alpha, beta, color);
 
 	MoveList moveList = game_->getMoves(color);
+	_sortMoveList(ply, moveList);
 
 	int move = moveList.next();
 
 	int best_move = move;
-	if (game_->getFigureBoard(KING, BLACK) & (1ULL << 3))
-		cout << "";
 
 	while (move && alpha < beta) {
 		game_->makeMove(move);
 
 		int temp = WIN;
+		ply++;
 		if (!game_->isGameOver())
 			temp = -_alphaBeta(depth - 1, -beta, -alpha, color == WHITE ? BLACK : WHITE);
 
 		game_->undoMove(move);
+		ply--;
 
 		if (temp > alpha) {
 			alpha = temp;
 			best_move = move;
+			_addKillerMove(ply, best_move);
 		}
 		move = moveList.next();
 	}
@@ -112,3 +146,4 @@ int Player::_quies(int alpha, int beta, int color)
 	}
 	return alpha;
 }
+

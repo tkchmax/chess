@@ -1,5 +1,7 @@
 #include "Player.h"
-
+#include <time.h>
+#include <stdio.h>
+#include <assert.h>
 
 vector<vector<U64>> rays(8, vector<U64>(64));
 U64 _aOut(U64 bb)
@@ -101,28 +103,139 @@ void _initializeRays()
 		}
 	}
 }
+int to_typeId(string type)
+{
+	if (type == "s")
+		return MOVE_TYPE_SILENT;
+	else if (type == "t")
+		return MOVE_TYPE_TAKE;
+}
+int to_square(string coord)
+{
+	char file = coord[0];
+	char rank = coord[1];
+	int x = int(file % 97);
+	int y = int(rank % 49) * 8;
+	return x + y;
+}
+int to_figureId(string figure)
+{
+	if (figure == "p")
+		return PAWN;
+	else if (figure == "n")
+		return KNIGHT;
+	else if (figure == "b")
+		return BISHOP;
+	else if (figure == "r")
+		return ROOK;
+	else if (figure == "q")
+		return QUEEN;
+	else if (figure == "k")
+		return KING;
+}
+void UI(Game& game, int color) //temp
+{
+	string move_from, move_to, type;
+	cout << "from >> "; cin >> move_from;
+	cout << "to >> "; cin >> move_to;
+	int oppositeColor = (color == WHITE) ? BLACK : WHITE;
 
+	if (move_from == "short")
+	{
+		int from = (color == WHITE) ? 4 : 60;
+		int to = (color == WHITE) ? 6 : 62;
+		int move = CreateListItem(from, to, KING, 0, MOVE_TYPE_0_0, color);
+		game.makeMove(move);
+		return;
+	}
+	else if (move_from == "long")
+	{
+		int from = (color == WHITE) ? 4 : 60;
+		int to = (color == WHITE) ? 2 : 58;
+		int move = CreateListItem(from, to, KING, 0, MOVE_TYPE_0_0_0, color);
+		game.makeMove(move);
+		return;
+	}
+
+	type = "s";
+
+	int capture = 0;
+	if (game.getFigureOnSquare(to_square(move_to), oppositeColor))
+	{
+		capture = game.getFigureOnSquare(to_square(move_to), oppositeColor);
+		type = "t";
+	}
+
+	if (move_from == "transform")
+	{
+		int to;
+		cout << endl;
+		cout << "to: "; cin >> to;
+		switch (to)
+		{
+		case KNIGHT:
+			type = PAWN_TO_KNIGHT;
+			break;
+		case BISHOP:
+			type = PAWN_TO_BISHOP;
+			break;
+		case QUEEN:
+			type = PAWN_TO_QUEEN;
+			break;
+
+		}
+		int move = CreateListItem(to_square(move_from), to_square(move_to), PAWN, capture, to_typeId(type), color);
+		game.makeMove(move);
+		return;
+	}
+
+
+	int figure = game.getFigureOnSquare(to_square(move_from), color);
+
+	int move = CreateListItem(to_square(move_from), to_square(move_to), figure, capture, to_typeId(type), color);
+	assert(figure < 7);
+
+	cout << "eval before make move " << game.evaluate(color)<<endl;
+	game.makeMove(move);
+	
+	ShowListItem(move);
+	cout << "eval after make move " << game.evaluate(color)<<endl;
+
+	cout << endl << endl;
+
+
+
+}
 
 int main()
 {
 	_initializeRays();
 
-
+	
 	Game game;
 	Player p1(&game, WHITE);
 	Player p2(&game, BLACK);
+	game.setFEN("2k1n3/pp3q1p/2p5/3PB1b1/1P6/P1N4P/2P2P2/R3K2R/");
+	game.setIsKingMoved(BLACK, true);
+	p1.alphaBeta(4, -INF, INF);
+	p2.alphaBeta(4, -INF, INF);
+	p1.alphaBeta(4, -INF, INF);
+	p2.alphaBeta(4, -INF, INF);
+	p1.alphaBeta(4, -INF, INF);
 
-	//game.setFEN("7k/8/P7/1P1N4/8/3K4/7p/r7/");
-	//game.setIsKingMoved(WHITE, true);
-	//game.setIsKingMoved(BLACK, true);
-	
-	//p2.alphaBeta(4, -INF, INF);
 
+	/*while (true)
+	{
 
-	//for (int i = 0; i < 5; ++i)
+		p1.alphaBeta(5, -INF, INF);
+		UI(game, BLACK);
+
+	}*/
+	//while (true)
 	//{
-	//	p1.alphaBeta(4, -INF, INF);
-	//	p2.alphaBeta(4, -INF, INF);
+	//	UI(game, WHITE);
+	//	p2.alphaBeta(5, -INF, INF);
+
 	//}
 
 	//ShowBoardVector(game.getFigureFromCoord(), WHITE);
@@ -132,13 +245,12 @@ int main()
 	//for (int i = PAWN; i <= KING; ++i)
 	//	ShowBits(game.getFigureBoard(i, BLACK));
 	//ShowBoardVector(game.getFigureFromCoord(), BLACK);
+	//for (int i = 0; i < 5; ++i)
+	//{
+	//	p1.alphaBeta(6, -INF, INF);
+	//	p2.alphaBeta(6, -INF, INF);
+	//}
 
-
-	for (int i = 0; i < 60; ++i)
-	{
-		p1.alphaBeta(4, -INF, INF);
-		p2.alphaBeta(4, -INF, INF);
-	}
-	cout << game.getPGN();
+	//cout << game.getPGN();
 }
 

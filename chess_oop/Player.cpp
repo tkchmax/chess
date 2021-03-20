@@ -54,12 +54,12 @@ int Player::_alphaBeta(int depth, int alpha, int beta, int color)
 
 	MoveList moveList = game_->getMoves(color);
 	_sortMoveList(ply, moveList);
-
 	int move = moveList.next();
 
 	int best_move = move;
 
 	while (move && alpha < beta) {
+
 		game_->makeMove(move);
 
 		int temp = WIN;

@@ -236,3 +236,29 @@ bool RawMoves::empty()
 		return true;
 	return false;
 }
+
+int RawMoves::count(int type)
+{
+	U64 t_silents = silents;
+	U64 t_takes = takes;
+
+	int count = 0;
+	if (type != MOVE_TYPE_TAKE)
+	{
+		while (t_silents)
+		{
+			count++;
+			t_silents &= t_silents - 1;
+		}
+	}
+	if (type != MOVE_TYPE_SILENT)
+	{
+		while (t_takes)
+		{
+			count++;
+			t_takes &= t_takes - 1;
+		}
+	}
+	return count;
+
+}

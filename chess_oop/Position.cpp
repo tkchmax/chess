@@ -426,18 +426,21 @@ bool Position::isKingAttacked(int color) const
 
 bool Position::isCastlingPossible(int color, int castlingType) const
 {
+	int oppositeColor = (color == WHITE) ? BLACK : WHITE;
 	if (castlingType == MOVE_TYPE_0_0_0)
 	{
 	U64 castlingBlockers = (color == WHITE ? 0xE : 0xE00000000000000);
 		bool isBlockersBetweenKingAndRook = getSideBoard(color) & castlingBlockers;
-		if (isBlockersBetweenKingAndRook || isKingMoved_[color] || isLshRookMoved_[color])
+		bool isCastlingUnderAttack = getAtackRays(oppositeColor) & castlingBlockers;
+		if (isBlockersBetweenKingAndRook || isKingMoved_[color] || isLshRookMoved_[color] || isCastlingUnderAttack)
 			return false;
 	}
 	else if (castlingType == MOVE_TYPE_0_0)
 	{
 		U64 castlingBlockers = (color == WHITE ? 0x60 : 0x6000000000000000);
 		bool isBlockersBetweenKingAndRook = getSideBoard(color) & castlingBlockers;
-		if (isBlockersBetweenKingAndRook || isKingMoved_[color] || isRshRookMoved_[color])
+		bool isCastlingUnderAttack = getAtackRays(oppositeColor) & castlingBlockers;
+		if (isBlockersBetweenKingAndRook || isKingMoved_[color] || isRshRookMoved_[color] || isCastlingUnderAttack)
 			return false;
 	}
 	return true;

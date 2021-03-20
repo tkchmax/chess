@@ -70,6 +70,7 @@ U64 Figure::getAttackBoard(U64 blockers, U64 opposite)
 	U64 attacks = 0;
 	U64 t_board = board_;
 
+
 	int square;
 	while (t_board)
 	{
@@ -94,6 +95,11 @@ void Figure::setColor(int color)
 void Figure::setCount(int count)
 {
 	nFigures_ = count;
+}
+
+void Figure::setPrioritySquares(vector<int>* prioritySquares)
+{
+	prioritySquares_ = prioritySquares;
 }
 
 
@@ -124,12 +130,12 @@ int Figure::getCost()
 
 int Figure::getPriorityEvalOnSquare(int square)
 {
-	return prioritySquares_[square];
+	return (*prioritySquares_)[square];
 }
 
 const vector<int>& Figure::getPrioritySquares()
 {
-	return prioritySquares_;
+	return *prioritySquares_;
 }
 
 bool Figure::moveFigure(int old_coordinates, int new_coordinates)
@@ -187,6 +193,41 @@ vector<int> Figure::getPiecesSquares()
 	return squares;
 }
 
+int CountHighBits(U64 board)
+{
+	int count = 0;
+	while (board)
+	{
+		count++;
+		board &= board - 1;
+	}
+	return count;
+}
+int Figure::getMobility(U64 blockers, U64 opposite)
+{
+	U64 t_board = board_;
+	int mobility = 0;
+
+	int square;
+	vector<int> squares = getPiecesSquares();
+	for (int i = 0; i < squares.size(); ++i)
+	{
+		U64 moves = getMoveBoards(squares[i], blockers, opposite).silents;
+		mobility += CountHighBits(moves);
+	}
+	//while (t_board)
+	//{
+	//	square = BitScanForward(t_board);
+	//	RawMoves moves = getMoveBoards(square, blockers, opposite);
+	//	
+	//	mobility += moves.getMovesCount(MOVE_TYPE_SILENT);
+
+	//	t_board &= t_board - 1;
+	//}
+
+	return mobility;
+}
+
 Pawn::Pawn(int color)
 {
 	name_ = PAWN;
@@ -195,23 +236,7 @@ Pawn::Pawn(int color)
 	nFigures_ = 8;
 	pieceCost_ = 100;
 
-	vector<int> t_whitePrioritySquares = { 0, 0, 0, 0, 0, 0, 0, 0,
-											4, 4, 4, 0, 0, 4, 4, 4,
-											6, 8, 2, 10,10,2, 8, 6,
-											6, 8, 12,16,16,12,8, 6,
-											6, 12,16,24,24,16,12,8,
-											12, 16,24,32,32,24,16,12,
-											15, 20,30,35,35,30,20,15,
-											0, 0, 0, 0, 0, 0, 0, 0 };
-	vector<int> t_blackPrioritySquares = { 0, 0, 0, 0, 0, 0, 0, 0,
-											15, 20,30,35,35,30,20,15,
-											12, 16,24, 32,32,24,16,12,
-											6,  12,16, 24,24,16,12, 8,
-											6,	8, 12, 16,16,12, 8, 6,
-											6,  8, 2,  10,10, 2, 8, 6,
-											4,  4, 4,  0,  0, 4, 4, 4,
-											0,  0, 0,  0,  0, 0, 0, 0 };
-	prioritySquares_ = (color == WHITE ? t_whitePrioritySquares : t_blackPrioritySquares);
+	prioritySquares_ = (color == WHITE ? &whitePawnPrioritySquares : &blackPawnPrioritySquares);
 }
 
 RawMoves Pawn::getMoveBoards(int square, U64 blockers, U64 opposite)
@@ -363,14 +388,7 @@ Knight::Knight(int color)
 	board_ = (color == WHITE ? WHITEKNIGHT_STARTPOSITION : BLACKKNIGHT_STARTPOSITION);
 	nFigures_ = 2;
 	pieceCost_ = 300;
-	prioritySquares_ = { 0, 2, 8, 10, 10, 8, 2, 0,
-						4 ,8, 16, 20, 20, 16, 8, 4,
-						8, 16, 25, 28, 28, 25, 16,8,
-						10, 20,28, 32, 32, 28, 20,10,
-						10, 20,28, 32, 32, 28, 20,10,
-						8, 16, 25, 28, 28, 25, 16, 8,
-						4, 8, 16, 20, 20, 16,  8,  4,
-						0, 2, 8,  10, 10  ,8  ,2  ,0 };
+	prioritySquares_ = &knightprioritySquares;
 }
 RawMoves Knight::getMoveBoards(int square, U64 blockers, U64 opposite)
 {
@@ -403,14 +421,7 @@ Bishop::Bishop(int color)
 	board_ = (color == WHITE ? WHITEBISHOP_STARTPOSITION : BLACKBISHOP_STARTPOSITION);
 	nFigures_ = 2;
 	pieceCost_ = 301;
-	prioritySquares_ = { 0,	0,	0,	0,	0,	0,	0,	0,
-						5,  23,  15,  15,  15,  15,  23,5,
-						5,  18,  22, 22, 22,  22,  18,5,
-						5,  18,  22, 22, 22,  22,   18,5,
-						5,  18, 22, 22, 22,  22,   18,5,
-						5, 18,22, 22, 22,   22, 18,	5,
-						5,  23,  15,  15,  15,  15,  23,5,
-						0,	0,	0,	0,	0,	0,	0,	0, };
+	prioritySquares_ = &bishopPrioritySquares;
 }
 RawMoves Bishop::getMoveBoards(int square, U64 blockers, U64 opposite)
 {
@@ -466,15 +477,7 @@ Rook::Rook(int color)
 	board_ = (color == WHITE ? WHITEROOK_STARTPOSITION : BLACKROOK_STARTPOSITION);
 	nFigures_ = 2;
 	pieceCost_ = 500;
-	prioritySquares_ = { 0, 0, 0,  5,  5, 5, 0, 0,
-						0, 0, 0,  0,  0, 0, 0, 0,
-						0, 0, 0,  0,  0, 0, 0, 0,
-						0, 0, 0,  0,  0, 0, 0, 0,
-						0, 0, 0,  0,  0, 0, 0, 0,
-						0, 0, 0,  0,  0, 0, 0, 0,
-						0, 0, 0,  0,  0, 0, 0, 0,
-						0, 0, 0,  5,  5, 5, 0, 0 };
-
+	prioritySquares_ = &rookPrioritySquares;
 }
 RawMoves Rook::getMoveBoards(int square, U64 blockers, U64 opposite)
 {
@@ -524,14 +527,7 @@ Queen::Queen(int color)
 	board_ = (color == WHITE ? WHITEQUEEN_STARTPOSITION : BLACKQUEEN_STARTPOSITION);
 	nFigures_ = 1;
 	pieceCost_ = 1000;
-	prioritySquares_ = { -20,-10,-10, 0, 0,-10,-10,-20,
-						-10,  0,  0,  0,  0,  0,  0,-10,
-						-10,  0,  5,  5,  5,  5,  0,-10,
-						 -5,  0,  5,  5,  5,  5,  0, -5,
-						 -5,  0,  5,  5,  5,  5,  0, -5,
-						-10,  5,  5,  5,  5,  5,  0,-10,
-						-10,  0,  0,  0,  0,  0,  0,-10,
-						-20,-10,-10, 0, 0,-10,-10,-20 };
+	prioritySquares_ = &queenPrioritySquares;
 }
 RawMoves Queen::getMoveBoards(int square, U64 blockers, U64 opposite)
 {
@@ -555,32 +551,8 @@ King::King(int color)
 	nFigures_ = 1;
 	pieceCost_ = 6000;
 
-	vector<int> t_blackKingMiddleGamePriority = { -30, -30,  -45,  -45,  -45,  -45, -30, -30,
-											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
-											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
-											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
-											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
-											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
-											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
-											 0, 0, -28,  -30,  -30, -28, 0, 0 };
-	vector<int> t_whiteKingMiddleGamePriority = { 0, 0, -28,  -30,  -30, -28, 0, 0,
-											 -30, -30,  -45,  -45,  -45,  -45, -30, -30,
-											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
-											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
-											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
-											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
-											-30, -30,  -45,  -45,  -45,  -45, -30, -30,
-											-30, -30,  -45,  -45,  -45,  -45, -30, -30, };
-	vector<int> t_kingEndGamePriority = { 0, 0, 0,  0,  0, 0, 0, 0,
-										0, 3,  3,  3,  3,  3, 3, 0,
-										5,10,10,10,10,10,10, 5,
-										10,20,20,30,30,20,20, 10,
-										10,20,20,30,30,20,20, 10,
-										5,-40,-40,-50,-50,-40,-40, 5,
-										0, 3,  3,  3,  3,  3, 3, 0,
-										0, 0, 0,  0,  0, 0, 0, 0 };
 
-	prioritySquares_ = (color == WHITE ? t_whiteKingMiddleGamePriority : t_blackKingMiddleGamePriority);
+	prioritySquares_ = (color == WHITE) ? &whiteKingMiddleGamePriority : &blackKingMiddleGamePriority;
 }
 RawMoves King::getMoveBoards(int square, U64 blockers, U64 opposite)
 {

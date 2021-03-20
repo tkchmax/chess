@@ -1,15 +1,5 @@
 #include "Game.h"
 
-int CountHighBits(U64 bitboard)
-{
-	int count = 0;
-	while (bitboard)
-	{
-		count++;
-		bitboard &= bitboard - 1;
-	}
-	return count;
-}
 
 
 Game::Game()
@@ -17,6 +7,7 @@ Game::Game()
 	firstKingMove_ = vector<int>(2);
 	firstLshRookMove_ = vector<int>(2);
 	firstRshRookMove_ = vector<int>(2);
+	nHalfMoves = 0;
 }
 
 void Game::makeMove(int move)
@@ -86,6 +77,7 @@ void Game::makeMove(int move)
 		break;
 	}
 
+	nHalfMoves++;
 }
 
 void Game::undoMove(int move)
@@ -148,15 +140,19 @@ void Game::undoMove(int move)
 		break;
 	}
 
+	nHalfMoves--;
 }
+
 
 int Game::evaluate(int color)
 {
 	int materialEval = getMaterialEval(color);
 	int strategyEval = getStrategyEval(color);
 	int mobilityEval = getMobilityEval(color);
+	
+	int doubledPawnsEval = _evalDoubledPawn(color);
 
-	return materialEval + strategyEval + (0.05 * mobilityEval);
+	return materialEval + strategyEval + (0.5 * mobilityEval) + doubledPawnsEval;
 }
 
 int Game::getMaterialEval(int color)
@@ -203,6 +199,12 @@ int Game::getMaterialEval(int color)
 
 int Game::getStrategyEval(int color)
 {
+	if (getSideFiguresCount(WHITE) + getSideFiguresCount(BLACK) < 16)
+	{
+		//if endgame began change strategy eval for kings
+		figures_[WHITE][KING]->setPrioritySquares(&kingEndGamePriority);
+		figures_[BLACK][KING]->setPrioritySquares(&kingEndGamePriority);
+	}
 	vector<int> whitePiecesSquares;
 	vector<int> blackPiecesSquares;
 	int eval = 0;
@@ -220,10 +222,26 @@ int Game::getStrategyEval(int color)
 	if (color == WHITE) return eval;
 	return -eval;
 }
-
 int Game::getMobilityEval(int color)
 {
-	return 0;
+	int whiteMobility = 0;
+	int blackMobility = 0;
+	int oppositeColor = (color == WHITE) ? BLACK : WHITE;
+
+	U64 moves = 0;
+	U64 whitePieces = getSideBoard(WHITE);
+	U64 blackPieces = getSideBoard(BLACK);
+	
+	for (int type = PAWN; type <= KING; ++type)
+	{
+		whiteMobility += figures_[WHITE][type]->getMobility(whitePieces, blackPieces);
+		blackMobility += figures_[BLACK][type]->getMobility(blackPieces, whitePieces);
+	}
+
+	int eval = whiteMobility - blackMobility;
+	if (color == WHITE)
+		return eval;
+	return -eval;
 }
 
 bool Game::isGameOver()
@@ -339,7 +357,6 @@ string Game::saveNotationOfMove(int move)
 	case PAWN:
 		if (move_type == MOVE_TYPE_TAKE)
 		{
-
 		}
 		break;
 	case KNIGHT:
@@ -466,6 +483,35 @@ void Game::_undoPawnTransform(int move_from, int transform_in, int transform_squ
 	figures_[color][transform_in]->removePiece(transform_square);
 
 	figureFromCoord_[color][transform_square] = 0;
+}
+
+ int _countDoubledPawns(vector<int> squares, int color)
+{
+	int count = 0;
+	for (auto iter = squares.begin(); iter != squares.end(); ++iter)
+	{
+		int forwardPawn = (color == WHITE) ? *iter + 8 : *iter - 8;
+		vector<int>::iterator findIter = find(squares.begin(), squares.end(), forwardPawn);
+		if (findIter != squares.end())
+			count++;
+	}
+	return count;
+}
+int Game::_evalDoubledPawn(int color)
+{
+	vector<int> pawnSquares = figures_[color][PAWN]->getPiecesSquares();
+	int countDoubledPawns = _countDoubledPawns(pawnSquares, color);
+
+	if (countDoubledPawns == 0)
+	{
+		int oppositeColor = (color == WHITE) ? BLACK : WHITE;
+		vector<int> oppositePawnSquares = figures_[oppositeColor][PAWN]->getPiecesSquares();
+		int oppositeCount = _countDoubledPawns(oppositePawnSquares, oppositeColor);
+		if (oppositeCount)
+			return oppositeCount * 10;
+	}
+
+	return -countDoubledPawns * 10;
 }
 
 string Game::toCoord(int number)

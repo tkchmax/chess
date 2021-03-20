@@ -24,6 +24,7 @@ struct RawMoves
 	}
 
 	bool empty();
+	int count(int type=ALL);
 };
 
 struct MoveList

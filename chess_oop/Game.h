@@ -29,8 +29,6 @@ public:
 
 	string getPGN();
 
-
-
 protected:
 	void _makeShortCastling(int color);
 	void _makeLongCastling(int color);
@@ -39,6 +37,9 @@ protected:
 	void _undoShortCastling(int color);
 	void _undoLongCastling(int color); 
 	void _undoPawnTransform(int move_from, int transform_in, int square, int color);
+
+	int _evalDoubledPawn(int color);
+
 
 	string toCoord(int number);
 
@@ -52,6 +53,7 @@ private:
 
 	vector<string> rawPGN_;
 
+	int nHalfMoves;
 
 };
 

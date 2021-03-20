@@ -7,6 +7,13 @@
 #include "MoveList.h"
 #include "Position.h";
 
+//extern vector<int> whitePawnPrioritySquares;
+//extern vector<int> blackPawnPrioritySquares;
+//extern vector<int> knightPrioritySquares;
+//extern vector<int> bishopPrioritySquares;
+//extern vector<int> rookPrioritySquares;
+//extern vector<int> queenPrioritySquares;
+
 class Position;
 
 class Figure
@@ -20,6 +27,7 @@ public:
 	void setBoard(U64 board);
 	void setColor(int color);
 	void setCount(int count);
+	void setPrioritySquares(vector<int> *prioritySquares);
 
 	int getName();
 	U64 getBoard();
@@ -34,6 +42,7 @@ public:
 	bool setFigureOnSquare(int square);
 
 	vector<int> getPiecesSquares();
+	int getMobility(U64 blockers, U64 opposite);
 
 protected:
 	int name_;
@@ -42,7 +51,7 @@ protected:
 	int color_;
 
 	int pieceCost_;
-	vector<int> prioritySquares_;
+	vector<int> *prioritySquares_;
 
 };
 

@@ -17,7 +17,7 @@ MoveList Figure::getAvailibleMoves(const Position& position, int type)
 	U64 blockers = position.getSideBoard(color_);
 	U64 opposite = position.getSideBoard(oppositeColor);
 
-	RawMoves moves;
+	//RawMoves moves;
 	RawMoves t_moves;
 
 	int from;
@@ -38,9 +38,12 @@ MoveList Figure::getAvailibleMoves(const Position& position, int type)
 				to = BitScanForward(silentMoves);
 
 				move = CreateListItem(from, to, name_, 0, MOVE_TYPE_SILENT, color_);
+				if (move == 4469212)
+					cout << "";
 				if (position.isMoveLegal(move))
 					list += move;
-
+				if (READ_MOVE_TYPE(move) == MOVE_TYPE_TAKE && READ_CAPTURE(move) == 0)
+					cout << "";
 				silentMoves &= silentMoves - 1;
 			}
 		}
@@ -53,9 +56,20 @@ MoveList Figure::getAvailibleMoves(const Position& position, int type)
 				capture = position.getFigureOnSquare(to, oppositeColor);
 
 				move = CreateListItem(from, to, name_, capture, MOVE_TYPE_TAKE, color_);
+				if (move == 4469212)
+				{ 
+					ShowListItem(move);
+
+					ShowBoardVector(position.getFigureFromCoord(), WHITE);
+					for (int i = PAWN; i <= KING; ++i)
+						ShowBits(position.getFigureBoard(i, WHITE));
+					cout << "black: " << endl;
+					for (int i = PAWN; i <= KING; ++i)
+						ShowBits(position.getFigureBoard(i, BLACK));
+					ShowBoardVector(position.getFigureFromCoord(), BLACK);
+				}
 				if (position.isMoveLegal(move))
 					list += move;
-
 				captureMoves &= captureMoves - 1;
 			}
 
@@ -70,12 +84,13 @@ U64 Figure::getAttackBoard(U64 blockers, U64 opposite)
 	U64 attacks = 0;
 	U64 t_board = board_;
 
-
 	int square;
 	while (t_board)
 	{
 		square = BitScanForward(t_board);
-		attacks |= getMoveBoards(square, blockers, opposite).silents;
+		RawMoves mb = getMoveBoards(square, blockers, opposite);
+		attacks |= mb.silents | mb.takes;
+		//attacks |= getMoveBoards(square, blockers, opposite).silents;// | getMoveBoards(square, blockers, opposite).takes;
 
 		t_board &= t_board - 1;
 	}
@@ -142,7 +157,10 @@ bool Figure::moveFigure(int old_coordinates, int new_coordinates)
 {
 	//bool isFigureExist = (1ULL << old_coordinates) & board_;
 	//if (!isFigureExist)
+	//{
 	//	return false;
+	//	this;
+	//}
 
 	U64 newBoard = ~(1ULL << old_coordinates) & board_;
 	newBoard |= (1ULL << new_coordinates);
@@ -152,14 +170,14 @@ bool Figure::moveFigure(int old_coordinates, int new_coordinates)
 
 bool Figure::removePiece(int square)
 {
-	bool isFigureOnSquare = (1ULL << square) & board_;
-	if (isFigureOnSquare)
-	{
+	//bool isFigureOnSquare = (1ULL << square) & board_;
+	//if (isFigureOnSquare)
+	//{
 		board_ &= ~(1ULL << square);
 		nFigures_--;
 		return true;
-	}
-	return false;
+	//}
+	//return false;
 
 }
 
@@ -170,8 +188,6 @@ bool Figure::setFigureOnSquare(int square)
 	//	return false;
 	board_ |= (1ULL << square);
 	nFigures_++;
-	if (nFigures_ > 8)
-		cout << "";
 	return true;
 
 }
@@ -326,14 +342,22 @@ MoveList Pawn::getAvailibleMoves(const Position& position, int type)
 					for (int i = KNIGHT; i <= QUEEN; ++i)
 					{
 						move = CreateListItem(from, to, PAWN, 0, PAWN_TO_KNIGHT + i - KNIGHT, color_);
+						if (move == 4469212)
+							cout << "";
 						if (position.isMoveLegal(move))
 							list += move;
+						if (READ_MOVE_TYPE(move) == MOVE_TYPE_TAKE && READ_CAPTURE(move) == 0)
+							cout << "";
 					}
 				}
 				else {
 					move = CreateListItem(from, to, PAWN, 0, MOVE_TYPE_SILENT, color_);
+					if (move == 18227190)
+						cout << "";
 					if (position.isMoveLegal(move))
 						list += move;
+					if (READ_MOVE_TYPE(move) == MOVE_TYPE_TAKE && READ_CAPTURE(move) == 0)
+						cout << "";
 				}
 				silentMoves &= silentMoves - 1;
 			}
@@ -352,16 +376,24 @@ MoveList Pawn::getAvailibleMoves(const Position& position, int type)
 					for (int i = KNIGHT; i <= QUEEN; ++i)
 					{
 						move = CreateListItem(from, to, PAWN, capture, PAWN_TO_KNIGHT + i - KNIGHT, color_);
+						if (move == 4469212)
+							cout << "";
 						if (position.isMoveLegal(move))
 							list += move;
+						if (READ_MOVE_TYPE(move) == MOVE_TYPE_TAKE && READ_CAPTURE(move) == 0)
+							cout << "";
 					}
 				}
 				else
 				{
 					move = CreateListItem(from, to, PAWN, capture, MOVE_TYPE_TAKE, color_);
+					if (move == 4469212)
+						cout << "";
 					int n = READ_FIGURE(move);
 					if (position.isMoveLegal(move))
 						list += move;
+					if (READ_MOVE_TYPE(move) == MOVE_TYPE_TAKE && READ_CAPTURE(move) == 0)
+						cout << "";
 				}
 				captureMoves &= captureMoves - 1;
 			}

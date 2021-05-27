@@ -12,6 +12,8 @@ class Position
 {
 public:
 	Position();
+
+	Position(const Position& position);
 	
 	vector<vector<shared_ptr<Figure>>> getFigures() const;
 	vector<vector<int>> getFigureFromCoord() const;
@@ -20,13 +22,15 @@ public:
 	U64 getAllFiguresBoard();
 
 
-	bool isMoveLegal(int move) const;
+	bool isMoveLegal(int move) const ;
 	U64 getAtackRays(int color) const;
 
 	void setFigures(vector<vector<shared_ptr<Figure>>> figures);
 	void setFigureFromCoord(vector<vector<int>> figuresFromCoord);
+	void setFigureFromCoord(int color, int square, int figure) { figureFromCoord_[color][square] = figure; }
 
 	bool isKingAttacked(int color) const;
+	//bool isKingAttacked(const U64& kingBoard, U64& oppositePieces, U64& blockers);
 	bool isCastlingPossible(int color, int castlingType) const;
 
 	MoveList getFigureMoveList(int figure, int color) const;
@@ -34,7 +38,7 @@ public:
 	U64 getFigureBoard(int figure, int color) const;
 	shared_ptr<Figure> getFigure(int figure, int color);
 
-	int getFigureOnSquare(int square, int color) const ;
+	int getFigureOnSquare(int square, int color) const;
 	int getSideFiguresCount(int color) const;
 
 	int getFigureCount(int figure, int color);
@@ -55,8 +59,8 @@ protected:
 	vector<bool> isRshRookMoved_;
 
 private:
-	Position(const Position& position);
+	//Position(const Position& position);
 
 };
-#endif // !_GAME_
+#endif // !_POSITION_
 

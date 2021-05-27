@@ -4,7 +4,6 @@
 #define _GAME_
 
 #include "Position.h"
-
 class Game : public Position
 {
 public:
@@ -12,6 +11,10 @@ public:
 
 	void makeMove(int move);
 	void undoMove(int move);
+
+	//bool isMoveLegal(int move) const;
+
+	//MoveList getMoves(int color, int type=ALL);
 
 	int evaluate(int color);
 

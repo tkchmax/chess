@@ -3,7 +3,7 @@
   <Class Name="Figure" Collapsed="true">
     <Position X="6" Y="0.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AByAAA0AAhAAAAwAAAAAAABgAAkAAACAIAAAwAQKAAA=</HashCode>
+      <HashCode>ABCAAA0AAgAAABwAAAAAAABgAAkAGACAIAAEwAQOIAA=</HashCode>
       <FileName>Figure.h</FileName>
     </TypeIdentifier>
   </Class>
@@ -49,31 +49,31 @@
       <FileName>Figure.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Game" Collapsed="true">
+  <Class Name="Game">
     <Position X="0.5" Y="4.5" Width="4.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAIAoAABAJAQAAAAIA4gAAAAAEIAAAAAAEA=</HashCode>
+      <HashCode>AAAAAAACEAIAoAABAIAUAACAIAoggBAAAEIAAEAgAkI=</HashCode>
       <FileName>Game.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Position" Collapsed="true">
     <Position X="0.5" Y="3.5" Width="4.75" />
     <TypeIdentifier>
-      <HashCode>gAAAAAAAAIAAAARgIAIIAIAEAAwAggAAAAAAAAAEACA=</HashCode>
+      <HashCode>gAAAAAAAAJAIBARgIBIIAIAHAAwAgoAAwAAAAAAEACA=</HashCode>
       <FileName>Position.h</FileName>
     </TypeIdentifier>
   </Class>
   <Struct Name="RawMoves" Collapsed="true">
     <Position X="17" Y="0.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAACAAAAAAAAIAAAAEAAAAAAACAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAABAIAAQAGAAAAAAACAAAAAAAAAAA=</HashCode>
       <FileName>MoveList.h</FileName>
     </TypeIdentifier>
   </Struct>
   <Struct Name="MoveList" Collapsed="true">
     <Position X="15.25" Y="0.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAEAAQgAAAAAAAAAAAAEAAAAAAAAAACAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAgAIAAAAACAAAAEAAAAAAAEAIAAgA=</HashCode>
       <FileName>MoveList.h</FileName>
     </TypeIdentifier>
   </Struct>

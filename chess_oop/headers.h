@@ -67,6 +67,7 @@ typedef unsigned long long U64;
 #define WRITE_CAPTURE(capture,num) (num|(capture<<15))
 #define WRITE_MOVE_TYPE(mt, num) (num|(mt<<18))
 #define WRITE_COLOR(color, num) (num|(color<<22))
+#define WRITE_LISTID(id, num) (num|(id<<24))
 
 #define READ_FROM(num) (num&63)
 #define READ_TO(num) ((num>>6)&63)
@@ -74,7 +75,7 @@ typedef unsigned long long U64;
 #define READ_CAPTURE(num) ((num>>15)&7)
 #define READ_MOVE_TYPE(num) ((num>>18)&15)
 #define READ_COLOR(num) ((num>>22)& 1)
-
+#define READ_LISTID(num) ((num >> 24) & 127)
 static vector<int> whitePawnPrioritySquares = { 0, 0, 0, 0, 0, 0, 0, 0,
 										4, 4, 4, 0, 0, 4, 4, 4,
 										6, 8, 2, 10,10,2, 8, 6,

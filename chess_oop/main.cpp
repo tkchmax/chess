@@ -184,7 +184,9 @@ void UI(Game& game, int color) //temp
 			break;
 
 		}
-		int move = CreateListItem(to_square(move_from), to_square(move_to), PAWN, capture, to_typeId(type), color);
+		cout << "move from >> "; cin >> move_from;
+		int move = CreateListItem(to_square(move_from), to_square(move_to), PAWN, capture, 8, color);
+		cout << "move\n";
 		game.makeMove(move);
 		return;
 	}
@@ -193,13 +195,14 @@ void UI(Game& game, int color) //temp
 	int figure = game.getFigureOnSquare(to_square(move_from), color);
 
 	int move = CreateListItem(to_square(move_from), to_square(move_to), figure, capture, to_typeId(type), color);
+
 	assert(figure < 7);
 
-	cout << "eval before make move " << game.evaluate(color)<<endl;
+	cout << "eval before make move " << game.evaluate(color) << endl;
 	game.makeMove(move);
-	
+
 	ShowListItem(move);
-	cout << "eval after make move " << game.evaluate(color)<<endl;
+	cout << "eval after make move " << game.evaluate(color) << endl;
 
 	cout << endl << endl;
 
@@ -211,19 +214,70 @@ int main()
 {
 	_initializeRays();
 
-	
+
 	Game game;
 	Player p1(&game, WHITE);
 	Player p2(&game, BLACK);
-	game.setFEN("2k1n3/pp3q1p/2p5/3PB1b1/1P6/P1N4P/2P2P2/R3K2R/");
-	game.setIsKingMoved(BLACK, true);
-	p1.alphaBeta(4, -INF, INF);
-	p2.alphaBeta(4, -INF, INF);
-	p1.alphaBeta(4, -INF, INF);
-	p2.alphaBeta(4, -INF, INF);
-	p1.alphaBeta(4, -INF, INF);
 
+	//Position pos1;
+	//pos1.setFEN("r6r/1p3ppp/p5k1/2P2b2/8/3P2N1/P2Q1PqP/2R1K2R/");
 
+	//Position pos2(pos1);
+
+	//ShowBoardVector(pos1.getFigureFromCoord(), WHITE);
+	//ShowBoardVector(pos1.getFigureFromCoord(), BLACK);
+	//cout << endl;
+	//ShowBoardVector(pos2.getFigureFromCoord(), WHITE);
+	//ShowBoardVector(pos2.getFigureFromCoord(), BLACK);
+
+	//vector<vector<int>> f1 = pos1.getFigureFromCoord();
+	//vector<vector<int>> f2 = pos2.getFigureFromCoord();
+	//for (int i = 0; i < 2; ++i)
+	//	for (int j = 0; j < 64; ++j)
+	//		if (f1[i][j] != f2[i][j])
+	//			cout << "!!!";
+
+	//for (int i = PAWN; i <= KING; ++i)
+	//	if (pos1.getFigureBoard(i, WHITE) != pos2.getFigureBoard(i, WHITE))
+	//		cout << "w board!!";
+	//for (int i = PAWN; i <= KING; ++i)
+	//	if (pos1.getFigureBoard(i, BLACK) != pos2.getFigureBoard(i, BLACK))
+	//		cout << "b board!!";
+
+	//cout << game.getMoves(WHITE);
+
+	//int move = CreateListItem(0, 63, ROOK, PAWN, MOVE_TYPE_TAKE, BLACK);
+	//move |= WRITE_LISTID(3, move);
+	
+	//cout << "from " << READ_FROM(move)<<endl;
+	//cout << "to " << READ_TO(move)<<endl;
+	//cout << "fig " << READ_FIGURE(move)<<endl;
+	//cout << "capture " << READ_CAPTURE(move)<<endl;
+	//cout << "type " << READ_MOVE_TYPE(move)<<endl;
+	//cout << "color " << READ_COLOR(move)<<endl;
+	//cout << "id " << READ_LISTID(move)<<endl;
+
+	//game.setFEN("rnbqkb1r/ppp1pppp/3N1n2/3p4/8/8/PPPPPPPP/R1BQKBNR/");
+	////game.setFEN("r6r/1p3ppp/p5k1/2P2b2/8/3P2N1/P2Q1PqP/2R1K2R/");
+	//game.setIsKingMoved(WHITE, true);
+	//game.setIsKingMoved(BLACK, true);
+	////game.setIsRshRookMoved(WHITE, true);
+	//game.setIsRshRookMoved(BLACK, true);
+	//game.setIsLshRookMoved(WHITE, true);
+	//game.setIsLshRookMoved(BLACK, true);
+
+	
+	//cout << game.getMoves(BLACK);
+
+	//p2.alphaBeta(4, -INF, INF);
+	//cout << game.getMoves(BLACK);
+
+	//int move = CreateListItem(50, 58, PAWN, 0, 8, 0);
+	//game.makeMove(move);
+
+	//ShowBoardVector(game.getFigureFromCoord(), WHITE);
+	//ShowBits(game.getFigureBoard(QUEEN, WHITE));
+	//(move);
 	/*while (true)
 	{
 
@@ -235,7 +289,6 @@ int main()
 	//{
 	//	UI(game, WHITE);
 	//	p2.alphaBeta(5, -INF, INF);
-
 	//}
 
 	//ShowBoardVector(game.getFigureFromCoord(), WHITE);
@@ -245,12 +298,13 @@ int main()
 	//for (int i = PAWN; i <= KING; ++i)
 	//	ShowBits(game.getFigureBoard(i, BLACK));
 	//ShowBoardVector(game.getFigureFromCoord(), BLACK);
-	//for (int i = 0; i < 5; ++i)
-	//{
-	//	p1.alphaBeta(6, -INF, INF);
-	//	p2.alphaBeta(6, -INF, INF);
-	//}
 
-	//cout << game.getPGN();
+	for (int i = 0; i < 40; ++i)
+	{
+		p1.alphaBeta(6, -INF, INF);
+		p2.alphaBeta(6, -INF, INF);
+	}
+
+	cout << game.getPGN();
 }
 

@@ -43,16 +43,22 @@ void Game::makeMove(int move)
 		}
 	}
 
+
 	//Set new figure position 
-	figures_[move_color][move_figure]->moveFigure(move_from, move_to);
+	bool b = figures_[move_color][move_figure]->moveFigure(move_from, move_to);
+	if (b == false)
+		cout << "";
+
 	figureFromCoord_[move_color][move_from] = 0;
 	figureFromCoord_[move_color][move_to] = move_figure;
 
 	//remove capture figure
 	if (move_capture)
 	{
-		figures_[oppositeColor][move_capture]->removePiece(move_to);
-		figureFromCoord_[oppositeColor][move_to] = 0;
+		bool b = figures_[oppositeColor][move_capture]->removePiece(move_to);
+		if (b == false)
+			cout << "";
+		figureFromCoord_[oppositeColor][move_to] = NO_FIGURE;
 	}
 
 	switch (move_type)
@@ -94,28 +100,35 @@ void Game::undoMove(int move)
 	if (move_figure == KING && move == firstKingMove_[move_color])
 	{
 		isKingMoved_[move_color] = false;
+		firstKingMove_[move_color] = 0;
 	}
 	else if (move_figure == ROOK)
 	{
 		if (move == firstLshRookMove_[move_color])
 		{
 			isLshRookMoved_[move_color] = false;
+			firstLshRookMove_[move_color] = 0;
 		}
 		else if (move == firstRshRookMove_[move_color])
 		{
 			isRshRookMoved_[move_color] = false;
+			firstRshRookMove_[move_color] = 0;
 		}
 	}
 
 
-	figures_[move_color][move_figure]->moveFigure(move_to, move_from);
+	bool b = figures_[move_color][move_figure]->moveFigure(move_to, move_from);
+	if (b == false && move_type < 5)
+		cout << "";
 	figureFromCoord_[move_color][move_to] = 0;
 	figureFromCoord_[move_color][move_from] = move_figure;
 
 	//restore capture figure
 	if (move_capture)
 	{
-		figures_[oppositeColor][move_capture]->setFigureOnSquare(move_to);
+		int b = figures_[oppositeColor][move_capture]->setFigureOnSquare(move_to);
+		if (b == false)
+			cout << "";
 		figureFromCoord_[oppositeColor][move_to] = move_capture;
 	}
 	switch (move_type)
@@ -149,7 +162,7 @@ int Game::evaluate(int color)
 	int materialEval = getMaterialEval(color);
 	int strategyEval = getStrategyEval(color);
 	int mobilityEval = getMobilityEval(color);
-	
+
 	int doubledPawnsEval = _evalDoubledPawn(color);
 
 	return materialEval + strategyEval + (0.5 * mobilityEval) + doubledPawnsEval;
@@ -231,7 +244,7 @@ int Game::getMobilityEval(int color)
 	U64 moves = 0;
 	U64 whitePieces = getSideBoard(WHITE);
 	U64 blackPieces = getSideBoard(BLACK);
-	
+
 	for (int type = PAWN; type <= KING; ++type)
 	{
 		whiteMobility += figures_[WHITE][type]->getMobility(whitePieces, blackPieces);
@@ -274,7 +287,7 @@ bool isExpandedNotationNedded(const Game* game, int figure_type, int move)
 	int move_to = READ_TO(move);
 
 	U64 board = game->getFigureBoard(figure_type, color) & ~(1ULL << move_to);
-	
+
 	shared_ptr<Figure> figure;
 	switch (figure_type)
 	{
@@ -360,8 +373,13 @@ string Game::saveNotationOfMove(int move)
 		}
 		break;
 	case KNIGHT:
+	{
 		s_figure = 'N';
+		bool expandedNotation = isExpandedNotationNedded(this, KNIGHT, move);
+		if (expandedNotation)
+			identify = toCoord(move_from)[0];
 		break;
+	}
 	case BISHOP:
 	{
 		s_figure = 'B';
@@ -424,6 +442,8 @@ void Game::_makeShortCastling(int color)
 	//set new rook position
 	int move_from = (color == WHITE ? 7 : 63);
 	int move_to = (color == WHITE ? 5 : 61);
+	if (figures_[WHITE][PAWN]->getBoard() == 0)
+		cout << "";
 	figures_[color][ROOK]->moveFigure(move_from, move_to);
 	figureFromCoord_[color][move_from] = 0;
 	figureFromCoord_[color][move_to] = ROOK;
@@ -437,6 +457,9 @@ void Game::_makeLongCastling(int color)
 	//set new rook position
 	int move_from = (color == WHITE ? 0 : 56);
 	int move_to(color == WHITE ? 3 : 59);
+
+	if (figures_[WHITE][PAWN]->getBoard() == 0)
+		cout << "";
 	figures_[color][ROOK]->moveFigure(move_from, move_to);
 	figureFromCoord_[color][move_from] = 0;
 	figureFromCoord_[color][move_to] = ROOK;
@@ -458,6 +481,8 @@ void Game::_undoShortCastling(int color)
 	//restore rook
 	int move_from = (color == WHITE ? 7 : 63);
 	int move_to = (color == WHITE ? 5 : 61);
+	if (figures_[WHITE][PAWN]->getBoard() == 0)
+		cout << "";
 	figures_[color][ROOK]->moveFigure(move_to, move_from);
 	figureFromCoord_[color][move_from] = ROOK;
 	figureFromCoord_[color][move_to] = 0;
@@ -470,9 +495,9 @@ void Game::_undoLongCastling(int color)
 	//restore rook
 	int move_from = (color == WHITE ? 0 : 56);
 	int move_to = (color == WHITE ? 3 : 59);
-	bool b = figures_[color][ROOK]->moveFigure(move_to, move_from);
-	if (!b)
+	if (figures_[WHITE][PAWN]->getBoard() == 0)
 		cout << "";
+	bool b = figures_[color][ROOK]->moveFigure(move_to, move_from);
 	figureFromCoord_[color][move_from] = ROOK;
 	figureFromCoord_[color][move_to] = 0;
 }
@@ -485,7 +510,7 @@ void Game::_undoPawnTransform(int move_from, int transform_in, int transform_squ
 	figureFromCoord_[color][transform_square] = 0;
 }
 
- int _countDoubledPawns(vector<int> squares, int color)
+int _countDoubledPawns(vector<int> squares, int color)
 {
 	int count = 0;
 	for (auto iter = squares.begin(); iter != squares.end(); ++iter)

@@ -217,7 +217,7 @@ string Position::getFEN()
 	int noFigureCount = 0;
 
 	string cur;
-	
+
 	vector<vector<string>> lines(8, vector<string>(8));
 
 	for (int i = 0; i < 64; ++i)
@@ -244,7 +244,7 @@ string Position::getFEN()
 			else
 				noFigureCount++;
 		}
-		
+
 		if (noFigureCount)
 		{
 			ostringstream ss;
@@ -256,13 +256,44 @@ string Position::getFEN()
 		cout << endl;
 	}
 
-	
+
 	return fen;
 }
 
 Position::Position(const Position& position)
 {
+	vector<vector<shared_ptr<Figure>>> copiedFigures(2, vector<shared_ptr<Figure>>(7));
+	copiedFigures[WHITE][PAWN] = shared_ptr<Pawn>(new Pawn(WHITE));
+	copiedFigures[BLACK][PAWN] = shared_ptr<Pawn>(new Pawn(BLACK));
 
+	copiedFigures[WHITE][KNIGHT] = shared_ptr<Knight>(new Knight(WHITE));
+	copiedFigures[BLACK][KNIGHT] = shared_ptr<Knight>(new Knight(BLACK));
+
+	copiedFigures[WHITE][BISHOP] = shared_ptr<Bishop>(new Bishop(WHITE));
+	copiedFigures[BLACK][BISHOP] = shared_ptr<Bishop>(new Bishop(BLACK));
+
+	copiedFigures[WHITE][ROOK] = shared_ptr<Rook>(new Rook(WHITE));
+	copiedFigures[BLACK][ROOK] = shared_ptr<Rook>(new Rook(BLACK));
+
+	copiedFigures[WHITE][QUEEN] = shared_ptr<Queen>(new Queen(WHITE));
+	copiedFigures[BLACK][QUEEN] = shared_ptr<Queen>(new Queen(BLACK));
+
+	copiedFigures[WHITE][KING] = shared_ptr<King>(new King(WHITE));
+	copiedFigures[BLACK][KING] = shared_ptr<King>(new King(BLACK));
+
+
+	for (int color = 0; color < 2; ++color)
+		for (int figure = PAWN; figure <= KING; ++figure)
+		{
+			//copiedFigures[color][figure] = shared_ptr<Pawn>(new Pawn(color));
+			copiedFigures[color][figure]->clone(position.figures_[color][figure]);
+		}
+
+	this->setFigures(copiedFigures);
+	this->figureFromCoord_ = position.figureFromCoord_;
+	this->isKingMoved_ = position.isKingMoved_;
+	this->isLshRookMoved_ = position.isLshRookMoved_;
+	this->isRshRookMoved_ = position.isRshRookMoved_;
 }
 
 vector<vector<shared_ptr<Figure>>> Position::getFigures() const
@@ -311,7 +342,6 @@ MoveList Position::getMoves(int color, int movesType) const
 			int to = (color == WHITE) ? 2 : 58;
 			moves += CreateListItem(from, to, KING, 0, MOVE_TYPE_0_0_0, color);
 		}
-
 	}
 
 	return moves;
@@ -330,8 +360,6 @@ shared_ptr<Figure> Position::getFigure(int figure, int color)
 
 int Position::getFigureOnSquare(int square, int color) const
 {
-	if (figureFromCoord_[BLACK][3] == KING)
-		cout << "";
 	return figureFromCoord_[color][square];
 }
 
@@ -377,15 +405,31 @@ bool Position::isMoveLegal(int move) const
 	int move_from = READ_FROM(move);
 	int move_to = READ_TO(move);
 	int move_color = READ_COLOR(move);
+	int move_type = READ_MOVE_TYPE(move);
+	int move_capture = READ_CAPTURE(move);
+	int oppositeColor = (move_color == WHITE) ? BLACK : WHITE;
 
-	figures_[move_color][move_figure]->moveFigure(move_from, move_to);
+	if (move_type == MOVE_TYPE_TAKE && move_capture == 0)
+		return false;
 
-	if (isKingAttacked(move_color))
+	Position tempPosition(*this);
+
+	tempPosition.figures_[move_color][move_figure]->moveFigure(move_from, move_to);
+	tempPosition.figureFromCoord_[move_color][move_from] = NO_FIGURE;
+	tempPosition.figureFromCoord_[move_color][move_to] = move_figure;
+
+	if (move_type == MOVE_TYPE_TAKE)
 	{
-		figures_[move_color][move_figure]->moveFigure(move_to, move_from);
+		int oppositeColor = (move_color == WHITE) ? BLACK : WHITE;
+		tempPosition.figures_[oppositeColor][move_capture]->removePiece(move_to);
+		tempPosition.figureFromCoord_[oppositeColor][move_to] = NO_FIGURE;
+	}
+
+	if (tempPosition.isKingAttacked(move_color))
+	{
 		return false;
 	}
-	figures_[move_color][move_figure]->moveFigure(move_to, move_from);
+
 
 	return true;
 }
@@ -419,17 +463,25 @@ bool Position::isKingAttacked(int color) const
 {
 	int oppositeColor = (color == WHITE ? BLACK : WHITE);
 	U64 attackers = getAtackRays(oppositeColor);
+	//ShowBits(figures_[color][KING]->getBoard());
+	//ShowBits(attackers);
+	//cout << "---\n\n";
 	if (attackers & figures_[color][KING]->getBoard())
 		return true;
 	return false;
 }
+
+//bool Position::isKingAttacked(const U64& kingBoard, U64& oppositePieces, U64& blockers)
+//{
+//	
+//}
 
 bool Position::isCastlingPossible(int color, int castlingType) const
 {
 	int oppositeColor = (color == WHITE) ? BLACK : WHITE;
 	if (castlingType == MOVE_TYPE_0_0_0)
 	{
-	U64 castlingBlockers = (color == WHITE ? 0xE : 0xE00000000000000);
+		U64 castlingBlockers = (color == WHITE ? 0xE : 0xE00000000000000);
 		bool isBlockersBetweenKingAndRook = getSideBoard(color) & castlingBlockers;
 		bool isCastlingUnderAttack = getAtackRays(oppositeColor) & castlingBlockers;
 		if (isBlockersBetweenKingAndRook || isKingMoved_[color] || isLshRookMoved_[color] || isCastlingUnderAttack)

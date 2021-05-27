@@ -20,6 +20,17 @@ class Figure
 {
 public:
 	Figure();
+
+	void clone(shared_ptr<Figure> figure)
+	{
+		this->name_ = figure->name_;
+		this->board_ = figure->board_;
+		this->nFigures_ = figure->nFigures_;
+		this->color_ = figure->color_;
+		this->pieceCost_ = figure->pieceCost_;
+		this->prioritySquares_ = figure->prioritySquares_;
+	}
+
 	virtual RawMoves getMoveBoards(int square, U64 blockers, U64 opposite) = 0;
 	virtual MoveList getAvailibleMoves(const Position& position, int type=ALL);
 	virtual U64 getAttackBoard(U64 blockers, U64 opposite);

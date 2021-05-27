@@ -137,12 +137,15 @@ void ShowListItem(int item)
 	string figure = ConvertFigureName(READ_FIGURE(item));
 	string capture = ConvertFigureName(READ_CAPTURE(item));
 	string move_type = ConvertMoveType(READ_MOVE_TYPE(item));
+	int listId = READ_LISTID(item);
 
 	cout << "From: " << from << endl;
 	cout << "To: " << to << endl;
 	cout << "Figure to move: " << figure << endl;
 	cout << "Capture figure: " << capture << endl;
 	cout << "Move type: " << move_type << endl;
+	cout << "Color: " << READ_COLOR(item) << endl;
+	cout << "List id: " << listId << endl;
 }
 
 ostream& operator<<(ostream& out, const MoveList& deque)
@@ -172,21 +175,24 @@ int CreateListItem(int from, int to, int figure, int capture, int move_type, int
 	return item;
 }
 
-void operator+=(MoveList& deque, const int move)
+void operator+=(MoveList& list, int move)
 {
-	if (move == 0)
-		cout << "";
-	int type = READ_MOVE_TYPE(move);
-	if (type == MOVE_TYPE_TAKE)
-		deque.capture.push_back(move);
+	move &= ~(127 << 24); //clear old id
+	move |= WRITE_LISTID(list.size() + 1, move);
+	if (READ_MOVE_TYPE(move) == MOVE_TYPE_TAKE)
+		list.capture.push_back(move);
 	else 
-		deque.silent.push_back(move);
+		list.silent.push_back(move);
 }
 
 void operator+=(MoveList& lsh, const MoveList& rsh)
 {
-	copy(rsh.capture.begin(), rsh.capture.end(), back_inserter(lsh.capture));
-	copy(rsh.silent.begin(), rsh.silent.end(), back_inserter(lsh.silent));
+	//copy(rsh.capture.begin(), rsh.capture.end(), back_inserter(lsh.capture));
+	//copy(rsh.silent.begin(), rsh.silent.end(), back_inserter(lsh.silent));
+	for (int i = 0; i < rsh.capture.size(); ++i)
+		lsh += rsh.capture[i];
+	for (int i = 0; i < rsh.silent.size(); ++i)
+		lsh += rsh.silent[i];
 }
 
 bool operator==(const MoveList& lsh, const MoveList& rsh)

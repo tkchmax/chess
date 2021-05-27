@@ -33,7 +33,7 @@ struct MoveList
 	deque<int> capture;
 	deque<int> killer;
 	
-	friend void operator+=(MoveList& lsh, const int move);
+	friend void operator+=(MoveList& lsh, int move);
 	friend void operator+=(MoveList& lsh, const MoveList& rsh);
 	friend bool operator==(const MoveList& lsh, const MoveList& rsh);
 	friend ostream& operator<<(ostream& out, const MoveList& list);

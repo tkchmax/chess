@@ -12,15 +12,12 @@ public:
 	void makeMove(int move);
 	void undoMove(int move);
 
-	//bool isMoveLegal(int move) const;
+	int evaluate(int color) const;
 
-	//MoveList getMoves(int color, int type=ALL);
-
-	int evaluate(int color);
-
-	int getMaterialEval(int color);
-	int getStrategyEval(int color);
-	int getMobilityEval(int color);
+	int getMaterialEval(int color) const;
+	int getStrategyEval(int color) const;
+	int getMobilityEval(int color) const;
+	int getDoubledPawnEval(int color) const;
 
 	bool isGameOver();
 
@@ -28,9 +25,14 @@ public:
 	void setIsLshRookMoved(int color, bool isMoved);
 	void setIsRshRookMoved(int color, bool isMoved);
 
-	string saveNotationOfMove(int move);
+	void saveNotationOfMove(string move);
+	void saveNotationOfMove(int move);
+	void saveMove(int move) { madedMove_.push_back(move); }
+	string getNotationOfMove(int move) const;
 
-	string getPGN();
+	string getPGN() const;
+	string removeLastNotation();
+	int removeLastMove();
 
 protected:
 	void _makeShortCastling(int color);
@@ -41,20 +43,18 @@ protected:
 	void _undoLongCastling(int color); 
 	void _undoPawnTransform(int move_from, int transform_in, int square, int color);
 
-	int _evalDoubledPawn(int color);
-
-
-	string toCoord(int number);
-
+	string toCoord(int number) const;
 
 protected:
 	bool game_over;
+
 private:
 	vector<int> firstKingMove_;
 	vector<int> firstLshRookMove_;
 	vector<int> firstRshRookMove_;
 
 	vector<string> rawPGN_;
+	vector<int> madedMove_;
 
 	int nHalfMoves;
 

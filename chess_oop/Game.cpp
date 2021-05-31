@@ -7,6 +7,7 @@ Game::Game()
 	firstKingMove_ = vector<int>(2);
 	firstLshRookMove_ = vector<int>(2);
 	firstRshRookMove_ = vector<int>(2);
+	rawPGN_ = vector<string>();
 	nHalfMoves = 0;
 }
 
@@ -45,19 +46,14 @@ void Game::makeMove(int move)
 
 
 	//Set new figure position 
-	bool b = figures_[move_color][move_figure]->moveFigure(move_from, move_to);
-	if (b == false)
-		cout << "";
-
+	figures_[move_color][move_figure]->moveFigure(move_from, move_to);
 	figureFromCoord_[move_color][move_from] = 0;
 	figureFromCoord_[move_color][move_to] = move_figure;
 
 	//remove capture figure
 	if (move_capture)
 	{
-		bool b = figures_[oppositeColor][move_capture]->removePiece(move_to);
-		if (b == false)
-			cout << "";
+		figures_[oppositeColor][move_capture]->removePiece(move_to);
 		figureFromCoord_[oppositeColor][move_to] = NO_FIGURE;
 	}
 
@@ -117,18 +113,14 @@ void Game::undoMove(int move)
 	}
 
 
-	bool b = figures_[move_color][move_figure]->moveFigure(move_to, move_from);
-	if (b == false && move_type < 5)
-		cout << "";
+	figures_[move_color][move_figure]->moveFigure(move_to, move_from);
 	figureFromCoord_[move_color][move_to] = 0;
 	figureFromCoord_[move_color][move_from] = move_figure;
 
 	//restore capture figure
 	if (move_capture)
 	{
-		int b = figures_[oppositeColor][move_capture]->setFigureOnSquare(move_to);
-		if (b == false)
-			cout << "";
+		figures_[oppositeColor][move_capture]->setFigureOnSquare(move_to);
 		figureFromCoord_[oppositeColor][move_to] = move_capture;
 	}
 	switch (move_type)
@@ -157,23 +149,20 @@ void Game::undoMove(int move)
 }
 
 
-int Game::evaluate(int color)
+int Game::evaluate(int color) const
 {
 	int materialEval = getMaterialEval(color);
 	int strategyEval = getStrategyEval(color);
 	int mobilityEval = getMobilityEval(color);
 
-	int doubledPawnsEval = _evalDoubledPawn(color);
+	int doubledPawnsEval = getDoubledPawnEval(color);
+	//int doubledPawnsEval = 0;
 
 	return materialEval + strategyEval + (0.5 * mobilityEval) + doubledPawnsEval;
 }
 
-int Game::getMaterialEval(int color)
+int Game::getMaterialEval(int color) const
 {
-	//int eval = 0;
-	//int nWhiteFigures = 0;
-	//int nBlackFigures = 0;
-
 	int eval = 0;
 	for (int type = PAWN; type <= KING; ++type)
 	{
@@ -210,13 +199,18 @@ int Game::getMaterialEval(int color)
 	return -eval;
 }
 
-int Game::getStrategyEval(int color)
+int Game::getStrategyEval(int color) const
 {
-	if (getSideFiguresCount(WHITE) + getSideFiguresCount(BLACK) < 16)
+	if (getSideFiguresCount(WHITE) + getSideFiguresCount(BLACK) < 14)
 	{
 		//if endgame began change strategy eval for kings
 		figures_[WHITE][KING]->setPrioritySquares(&kingEndGamePriority);
 		figures_[BLACK][KING]->setPrioritySquares(&kingEndGamePriority);
+	}
+	else
+	{
+		figures_[WHITE][KING]->setPrioritySquares(&whiteKingMiddleGamePriority);
+		figures_[BLACK][KING]->setPrioritySquares(&blackKingMiddleGamePriority);
 	}
 	vector<int> whitePiecesSquares;
 	vector<int> blackPiecesSquares;
@@ -235,7 +229,7 @@ int Game::getStrategyEval(int color)
 	if (color == WHITE) return eval;
 	return -eval;
 }
-int Game::getMobilityEval(int color)
+int Game::getMobilityEval(int color) const
 {
 	int whiteMobility = 0;
 	int blackMobility = 0;
@@ -279,53 +273,38 @@ void Game::setIsRshRookMoved(int color, bool isMoved)
 	isRshRookMoved_[color] = isMoved;
 }
 
-
 bool isExpandedNotationNedded(const Game* game, int figure_type, int move)
 {
 	int color = READ_COLOR(move);
-	int oppositeColor = (color == WHITE) ? BLACK : WHITE;
 	int move_to = READ_TO(move);
+	int move_from = READ_FROM(move);
 
-	U64 board = game->getFigureBoard(figure_type, color) & ~(1ULL << move_to);
+	Position tempPosition(*game);
+	auto figures = tempPosition.getFigures();
+	figures[color][figure_type]->removePiece(move_from);
+	MoveList mv = tempPosition.getMoves(color);
 
-	shared_ptr<Figure> figure;
-	switch (figure_type)
+	int m;
+	while (m = mv.next())
 	{
-	case ROOK:
-		figure = shared_ptr<Rook>(new Rook(color));
-		break;
-	case BISHOP:
-		figure = shared_ptr<Bishop>(new Bishop(color));
-		break;
-	case QUEEN:
-		figure = shared_ptr<Queen>(new Queen(color));
-		break;
-	case KNIGHT:
-		figure = shared_ptr<Knight>(new Knight(color));
-	default:
-		cout << "";
-		break;
-	}
-
-	figure->setBoard(board);
-	U64 blockers = game->getSideBoard(color) & ~(1ULL << move_to);
-	U64 opposite = game->getSideBoard(oppositeColor);
-
-	while (board)
-	{
-		int from = BitScanForward(board);
-		RawMoves moves = figure->getMoveBoards(from, blockers, opposite);
-
-		bool isExpandedNotationNedded = (moves.silents & (1ULL << move_to) || (moves.takes & (1ULL << move_to)));
-
-		if (isExpandedNotationNedded)
+		if (READ_FIGURE(m) == figure_type && READ_TO(m) == move_to)
 			return true;
-		board &= board - 1;
 	}
 	return false;
 }
 
-string Game::saveNotationOfMove(int move)
+void Game::saveNotationOfMove(string move)
+{
+	rawPGN_.push_back(move);
+}
+
+void Game::saveNotationOfMove(int move)
+{
+	string notation = getNotationOfMove(move);
+	saveNotationOfMove(notation);
+}
+
+string Game::getNotationOfMove(int move) const
 {
 	int figure = READ_FIGURE(move);
 	int move_from = READ_FROM(move);
@@ -356,12 +335,12 @@ string Game::saveNotationOfMove(int move)
 		transform = "=Q";
 		break;
 	case MOVE_TYPE_0_0:
-		notation << "O-O";
-		rawPGN_.push_back(notation.str());
+		return "O-O";
+		//rawPGN_.push_back(notation.str());
 		return notation.str();
 	case MOVE_TYPE_0_0_0:
-		notation << "O-O-O";
-		rawPGN_.push_back(notation.str());
+		return "O-O-O";
+		//rawPGN_.push_back(notation.str());
 		return notation.str();
 	}
 
@@ -419,20 +398,38 @@ string Game::saveNotationOfMove(int move)
 
 
 	notation << s_figure << identify << s_capture << toCoord(move_to) << transform;
-	rawPGN_.push_back(notation.str());
+	//rawPGN_.push_back(notation.str());
 	return notation.str();
 }
 
-string Game::getPGN()
+string Game::getPGN() const
 {
 	stringstream pgn;
+	int n = 0;
 	for (int i = 0; i < rawPGN_.size(); i += 2)
 	{
-		pgn << i << ". " << rawPGN_[i];
+		n++;
+		pgn << n << ". " << rawPGN_[i];
 		if (i + 1 < rawPGN_.size())
 			pgn << " " << rawPGN_[i + 1] << " ";
+		if (n % 6 == 0) pgn << "\n";
+
 	}
 	return pgn.str();
+}
+
+string Game::removeLastNotation()
+{
+	string temp = rawPGN_.back();
+	rawPGN_.pop_back();
+	return temp;
+}
+
+int Game::removeLastMove()
+{
+	int temp = madedMove_.back();
+	madedMove_.pop_back();
+	return temp;
 }
 
 void Game::_makeShortCastling(int color)
@@ -522,7 +519,7 @@ int _countDoubledPawns(vector<int> squares, int color)
 	}
 	return count;
 }
-int Game::_evalDoubledPawn(int color)
+int Game::getDoubledPawnEval(int color) const
 {
 	vector<int> pawnSquares = figures_[color][PAWN]->getPiecesSquares();
 	int countDoubledPawns = _countDoubledPawns(pawnSquares, color);
@@ -539,7 +536,7 @@ int Game::_evalDoubledPawn(int color)
 	return -countDoubledPawns * 10;
 }
 
-string Game::toCoord(int number)
+string Game::toCoord(int number) const
 {
 	char rank = char((number / 8) + '1');
 	char file = char(number % 8 + 'a');

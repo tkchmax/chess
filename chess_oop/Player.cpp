@@ -37,7 +37,7 @@ void Player::_sortMoveList(int ply, MoveList& moveList)
 			else
 				iter++;
 		}
-	}		
+	}
 }
 
 int Player::alphaBeta(int depth, int alpha, int beta)
@@ -80,7 +80,7 @@ int Player::_alphaBeta(int depth, int alpha, int beta, int color)
 
 	if (depth == DEPTH) { //!!!
 		applyMove(best_move);
-		cout << "alpha " << alpha << endl << endl;
+		//cout << "alpha " << alpha << endl << endl;
 	}
 	return alpha;
 }
@@ -90,6 +90,10 @@ void Player::applyMove(int move)
 	int move_color = READ_COLOR(move);
 	int move_figure = READ_FIGURE(move);
 	int move_from = READ_FIGURE(move);
+
+	string notation = game_->getNotationOfMove(move);
+	game_->saveNotationOfMove(notation);
+	game_->saveMove(move);
 
 	if (move_figure == KING)
 	{
@@ -107,17 +111,20 @@ void Player::applyMove(int move)
 	int opColor = (move_color == WHITE ? BLACK : WHITE);
 
 
-	cout << "eval before make move\t" << game_->evaluate(move_color) << endl;
-	ShowListItem(move);
+	//cout << "eval before make move\t" << game_->evaluate(move_color) << endl;
+	//ShowListItem(move);
 
 	game_->makeMove(move);
 
 	//madedMoves[move_color].push_back(move);
 
-	cout << "eval after make move\t" << game_->evaluate(move_color) << endl;
+	//cout << "eval after make move\t" << game_->evaluate(move_color) << endl;
 
-	string notation = game_->saveNotationOfMove(move);
-	cout << notation<<endl;
+	string side = (move_color == WHITE) ? "WHITE" : "BLACK";
+	printf("\033[36m%s side: %s\033[0m\n", side.c_str(),notation.c_str());
+
+	//cout << side << " side: ";
+	//cout << notation << endl;
 }
 
 int Player::_quies(int alpha, int beta, int color)

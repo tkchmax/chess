@@ -7,19 +7,13 @@
 #include "MoveList.h"
 #include "Position.h";
 
-//extern vector<int> whitePawnPrioritySquares;
-//extern vector<int> blackPawnPrioritySquares;
-//extern vector<int> knightPrioritySquares;
-//extern vector<int> bishopPrioritySquares;
-//extern vector<int> rookPrioritySquares;
-//extern vector<int> queenPrioritySquares;
-
 class Position;
 
 class Figure
 {
 public:
 	Figure();
+	virtual ~Figure() {}
 
 	void clone(shared_ptr<Figure> figure)
 	{
@@ -35,18 +29,19 @@ public:
 	virtual MoveList getAvailibleMoves(const Position& position, int type=ALL);
 	virtual U64 getAttackBoard(U64 blockers, U64 opposite);
 
-	void setBoard(U64 board);
-	void setColor(int color);
-	void setCount(int count);
-	void setPrioritySquares(vector<int> *prioritySquares);
+	void setBoard(U64 board)  { board_ = board; }
+	void setColor(int color)  { color_ = color; }
+	void setCount(int count)  { nFigures_ = count; }
+	void setPrioritySquares(vector<int>* prioritySquares) { prioritySquares_ = prioritySquares; }
 
-	int getName();
-	U64 getBoard();
-	U64 getColor();
-	int getCount();
-	int getCost();
-	int getPriorityEvalOnSquare(int square);
-	const vector<int>& getPrioritySquares();
+	int getName()  { return name_; }
+	U64 getBoard() { return board_; }
+	U64 getColor() { return color_; }
+	int getCount() { return nFigures_; }
+	int getCost()  { return pieceCost_; }
+
+	int getPriorityEvalOnSquare(int square) { return (*prioritySquares_)[square]; }
+	const vector<int>& getPrioritySquares() { return *prioritySquares_; }
 
 	bool moveFigure(int from_square, int to_square);
 	bool removePiece(int square);

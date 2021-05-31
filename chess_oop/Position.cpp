@@ -296,6 +296,15 @@ Position::Position(const Position& position)
 	this->isRshRookMoved_ = position.isRshRookMoved_;
 }
 
+bool Position::operator==(const Position& position)
+{
+	for (int color = 0; color < 2; ++color)
+		for (int sq = 0; sq < 64; ++sq)
+			if (this->figureFromCoord_[color][sq] != position.figureFromCoord_[color][sq])
+				return false;
+
+}
+
 vector<vector<shared_ptr<Figure>>> Position::getFigures() const
 {
 	return figures_;
@@ -321,11 +330,6 @@ MoveList Position::getFigureMoveList(int figure, int color) const
 MoveList Position::getMoves(int color, int movesType) const
 {
 	MoveList moves;
-	for (int type = PAWN; type <= KING; ++type)
-		moves += figures_[color][type]->getAvailibleMoves(*this, movesType);
-
-	if (movesType != MOVE_TYPE_SILENT)
-		sort(moves.capture.begin(), moves.capture.end(), MvvLva()); // MVV-LVA
 
 	//add castling moves
 	if (movesType != MOVE_TYPE_TAKE)
@@ -343,6 +347,12 @@ MoveList Position::getMoves(int color, int movesType) const
 			moves += CreateListItem(from, to, KING, 0, MOVE_TYPE_0_0_0, color);
 		}
 	}
+
+	for (int type = PAWN; type <= KING; ++type)
+		moves += figures_[color][type]->getAvailibleMoves(*this, movesType);
+
+	if (movesType != MOVE_TYPE_SILENT)
+		sort(moves.capture.begin(), moves.capture.end(), MvvLva()); // MVV-LVA
 
 	return moves;
 }
@@ -426,9 +436,7 @@ bool Position::isMoveLegal(int move) const
 	}
 
 	if (tempPosition.isKingAttacked(move_color))
-	{
 		return false;
-	}
 
 
 	return true;
@@ -479,6 +487,8 @@ bool Position::isKingAttacked(int color) const
 bool Position::isCastlingPossible(int color, int castlingType) const
 {
 	int oppositeColor = (color == WHITE) ? BLACK : WHITE;
+	if (isKingAttacked(color))
+		return false;
 	if (castlingType == MOVE_TYPE_0_0_0)
 	{
 		U64 castlingBlockers = (color == WHITE ? 0xE : 0xE00000000000000);

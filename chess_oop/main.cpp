@@ -1,7 +1,5 @@
-#include "Player.h"
-#include <time.h>
-#include <stdio.h>
-#include <assert.h>
+#include "main.h"
+#include <iomanip>
 
 vector<vector<U64>> rays(8, vector<U64>(64));
 U64 _aOut(U64 bb)
@@ -210,86 +208,221 @@ void UI(Game& game, int color) //temp
 
 }
 
+
+struct Handler
+{
+	virtual int handle(vector<string>::iterator& parameters) = 0;
+	virtual ~Handler() {}
+};
+struct NewGameHandler : Handler
+{
+	string getAvailibleMoves(const Game& game, int color)
+	{
+		string res = "";
+		MoveList list = game.getMoves(color);
+		int move = 0, prev_move = 0;
+		do
+		{
+			prev_move = move;
+			move = list.next();
+			if (READ_FIGURE(move) != READ_FIGURE(prev_move))
+				res += '\n';
+			if (move != 0)
+				res += game.getNotationOfMove(move) + "  ";
+		} while (move);
+		return res;
+	}
+	int UI(const Game& game, int color)
+	{
+		string s_move;
+		//system("CLS");
+		cout << "\nhistory:\n" << game.getPGN() << endl;
+		//printf("\033[32mAvailible moves\n%s\033[0m\n\n", getAvailibleMoves(game, BLACK).c_str());
+
+		cout << "your turn >> "; cin >> s_move;
+		cin.ignore();
+
+		if (s_move == "exit")
+			return EXIT_HANDLE;
+		if (s_move == "undo")
+			return UNDO_HANDLE;
+
+		MoveList availibleMoves = game.getMoves(color);
+
+		int move;
+		while (move = availibleMoves.next())
+		{
+			if (game.getNotationOfMove(move) == s_move)
+				return move;
+		}
+
+		string err_message = "ERROR: There is no move " + s_move + " in current position";
+		throw(err_message);
+	}
+	int handle(vector<string>::iterator& parameters) override
+	{
+		string s_color = *(++parameters);
+		int depth = stoi(*(++parameters));
+
+		if (s_color != "w" && s_color != "b")
+			throw "ERROR: invalid color parameter";
+
+		int color = (s_color == "w") ? WHITE : BLACK;
+
+		Game game;
+		//game.setFEN("r4rk1/1pp1q2p/p1n1bpp1/3Pp3/2P1N3/P3bB1P/2R3PB/3Q1R1K/");
+		//game.setIsKingMoved(WHITE, true);
+		//game.setIsKingMoved(BLACK, true);
+		//game.setIsRshRookMoved(WHITE, true);
+		//game.setIsRshRookMoved(BLACK, true);
+		//game.setIsLshRookMoved(WHITE, true);
+		//game.setIsLshRookMoved(BLACK, true);
+
+		int opColor = (color == WHITE) ? BLACK : WHITE;
+		Player computer(&game, opColor);
+
+		int move;
+		function<int()> white_turn = [this, &game, &computer, depth, color, &move] {
+			move = UI(game, color);
+			if (move < 0) return move;
+			game.makeMove(move);
+			game.saveMove(move);
+			game.saveNotationOfMove(move);
+			cout << "\ncomputing...\n\n";
+			computer.alphaBeta(depth, -INF, INF);
+			return 0;
+		};
+		function<int()> black_turn = [this, &game, &computer, depth,color, &move] {
+			cout << "\ncomputing...\n\n";
+			computer.alphaBeta(depth, -INF, INF);
+			move = UI(game, color);
+			if (move < 0) return move;
+			game.makeMove(move);
+			game.saveMove(move);
+			game.saveNotationOfMove(move);
+			return 0;
+		};
+		function<int()> play = (color == WHITE) ? white_turn : black_turn;
+
+		while (!game.isGameOver())
+		{
+			try {
+				switch (play())
+				{
+				case EXIT_HANDLE:
+					return 0;
+				case UNDO_HANDLE:
+					for (int i = 0; i < 2; ++i)
+					{
+						game.undoMove(game.removeLastMove());
+						string s = game.removeLastNotation();
+						cout << "removed " << s << endl;
+					}
+					if (color == BLACK)
+						play = white_turn;
+					break;
+				default:
+					break;
+				}
+			}
+			catch (string err)
+			{
+				printf("\033[31m%s\033[0m\n", err.c_str());
+				printf("\033[32mAvailible moves\n%s\033[0m\n", getAvailibleMoves(game, color).c_str());
+				if (color == BLACK)
+					play = white_turn;
+			}
+		}
+		return 0;
+	}
+private:
+	int last_move;
+	vector<int> moves;
+};
+struct ExitHandler : Handler
+{
+	int handle(vector<string>::iterator& parameters)
+	{
+		return EXIT_HANDLE;
+	}
+};
+struct ClsHandler : Handler
+{
+	int handle(vector<string>::iterator&)
+	{
+		system("CLS");
+		return 0;
+	}
+};
+struct EvalHandler : Handler
+{
+	int handle(vector<string>::iterator& parameters) override
+	{
+		string fen = *(++parameters) + '/';
+		Game game;
+		game.setFEN(fen);
+		//cout << "--------------------------------------\n"
+		//	<<"Total Material: " << game.getMaterialEval(WHITE) << " |\n"
+		//	<< "Total Strategy: " << game.getStrategyEval(WHITE) << " |\n"
+		//	<< "Total Mobility: " << game.getMobilityEval(WHITE) << " |\n"
+		//	<< "Doubled pawns: " << game.getDoubledPawnEval(WHITE) << " |\n"
+			//<< "--------------------------------------------------\n"
+		cout << "Total evaluation: " << (double)game.evaluate(WHITE) / 100 << " (white side)\n";
+		//<< "-------------------------------------------\n";
+		return 0;
+	}
+};
+
+void UI()
+{
+	map<string, Handler*> handlers;
+	handlers["newgame"] = new NewGameHandler();
+	handlers["cls"] = new ClsHandler();
+	handlers["eval"] = new EvalHandler();
+	handlers["exit"] = new ExitHandler();
+	handlers["q"] = new ExitHandler();
+
+	string raw_command;
+	int ret = 0;
+	while (ret != EXIT_HANDLE)
+	{
+		cout << ">> ";
+		getline(cin, raw_command);
+		if (raw_command == "")
+			continue;
+		stringstream ss(raw_command);
+
+		vector<string> parameters;
+		do
+		{
+			parameters.push_back(string());
+		} while (ss >> parameters.back());
+
+		vector<string>::iterator param = parameters.begin();
+		try {
+			ret = handlers.at(parameters[0])->handle(param);
+		}
+		catch (std::out_of_range & ex)
+		{
+			printf("\033[31mERROR: command not found\033[0m\n");
+		}
+		catch (std::invalid_argument & ex)
+		{
+			printf("\033[31mERROR: invalid parameters\033[0m\n");
+		}
+
+	}
+}
+
+
 int main()
 {
 	_initializeRays();
-
+	UI();
 
 	Game game;
 	Player p1(&game, WHITE);
 	Player p2(&game, BLACK);
-
-	//Position pos1;
-	//pos1.setFEN("r6r/1p3ppp/p5k1/2P2b2/8/3P2N1/P2Q1PqP/2R1K2R/");
-
-	//Position pos2(pos1);
-
-	//ShowBoardVector(pos1.getFigureFromCoord(), WHITE);
-	//ShowBoardVector(pos1.getFigureFromCoord(), BLACK);
-	//cout << endl;
-	//ShowBoardVector(pos2.getFigureFromCoord(), WHITE);
-	//ShowBoardVector(pos2.getFigureFromCoord(), BLACK);
-
-	//vector<vector<int>> f1 = pos1.getFigureFromCoord();
-	//vector<vector<int>> f2 = pos2.getFigureFromCoord();
-	//for (int i = 0; i < 2; ++i)
-	//	for (int j = 0; j < 64; ++j)
-	//		if (f1[i][j] != f2[i][j])
-	//			cout << "!!!";
-
-	//for (int i = PAWN; i <= KING; ++i)
-	//	if (pos1.getFigureBoard(i, WHITE) != pos2.getFigureBoard(i, WHITE))
-	//		cout << "w board!!";
-	//for (int i = PAWN; i <= KING; ++i)
-	//	if (pos1.getFigureBoard(i, BLACK) != pos2.getFigureBoard(i, BLACK))
-	//		cout << "b board!!";
-
-	//cout << game.getMoves(WHITE);
-
-	//int move = CreateListItem(0, 63, ROOK, PAWN, MOVE_TYPE_TAKE, BLACK);
-	//move |= WRITE_LISTID(3, move);
-	
-	//cout << "from " << READ_FROM(move)<<endl;
-	//cout << "to " << READ_TO(move)<<endl;
-	//cout << "fig " << READ_FIGURE(move)<<endl;
-	//cout << "capture " << READ_CAPTURE(move)<<endl;
-	//cout << "type " << READ_MOVE_TYPE(move)<<endl;
-	//cout << "color " << READ_COLOR(move)<<endl;
-	//cout << "id " << READ_LISTID(move)<<endl;
-
-	//game.setFEN("rnbqkb1r/ppp1pppp/3N1n2/3p4/8/8/PPPPPPPP/R1BQKBNR/");
-	////game.setFEN("r6r/1p3ppp/p5k1/2P2b2/8/3P2N1/P2Q1PqP/2R1K2R/");
-	//game.setIsKingMoved(WHITE, true);
-	//game.setIsKingMoved(BLACK, true);
-	////game.setIsRshRookMoved(WHITE, true);
-	//game.setIsRshRookMoved(BLACK, true);
-	//game.setIsLshRookMoved(WHITE, true);
-	//game.setIsLshRookMoved(BLACK, true);
-
-	
-	//cout << game.getMoves(BLACK);
-
-	//p2.alphaBeta(4, -INF, INF);
-	//cout << game.getMoves(BLACK);
-
-	//int move = CreateListItem(50, 58, PAWN, 0, 8, 0);
-	//game.makeMove(move);
-
-	//ShowBoardVector(game.getFigureFromCoord(), WHITE);
-	//ShowBits(game.getFigureBoard(QUEEN, WHITE));
-	//(move);
-	/*while (true)
-	{
-
-		p1.alphaBeta(5, -INF, INF);
-		UI(game, BLACK);
-
-	}*/
-	//while (true)
-	//{
-	//	UI(game, WHITE);
-	//	p2.alphaBeta(5, -INF, INF);
-	//}
 
 	//ShowBoardVector(game.getFigureFromCoord(), WHITE);
 	//for (int i = PAWN; i <= KING; ++i)
@@ -299,11 +432,11 @@ int main()
 	//	ShowBits(game.getFigureBoard(i, BLACK));
 	//ShowBoardVector(game.getFigureFromCoord(), BLACK);
 
-	for (int i = 0; i < 40; ++i)
-	{
-		p1.alphaBeta(6, -INF, INF);
-		p2.alphaBeta(6, -INF, INF);
-	}
+	//for (int i = 0; i < 40; ++i)
+	//{
+	//	p1.alphaBeta(5, -INF, INF);
+	//	p2.alphaBeta(5, -INF, INF);
+	//}
 
 	cout << game.getPGN();
 }

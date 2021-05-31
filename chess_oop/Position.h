@@ -14,6 +14,8 @@ public:
 	Position();
 
 	Position(const Position& position);
+
+	bool operator==(const Position& position);
 	
 	vector<vector<shared_ptr<Figure>>> getFigures() const;
 	vector<vector<int>> getFigureFromCoord() const;
@@ -49,6 +51,9 @@ public:
 	string getFEN();
 	string getFigureIdOnSquare(int square);
 
+	bool isKingMoved(int color) { return isKingMoved_[color]; }
+	bool isLshRookMoved(int color) { return isLshRookMoved_[color]; }
+	bool isRshRookMoved(int color) { return isRshRookMoved_[color]; }
 
 protected:
 	vector<vector<shared_ptr<Figure>>> figures_;

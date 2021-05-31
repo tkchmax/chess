@@ -38,8 +38,6 @@ MoveList Figure::getAvailibleMoves(const Position& position, int type)
 				to = BitScanForward(silentMoves);
 
 				move = CreateListItem(from, to, name_, 0, MOVE_TYPE_SILENT, color_);
-				if (move == 4469212)
-					cout << "";
 				if (position.isMoveLegal(move))
 					list += move;
 				if (READ_MOVE_TYPE(move) == MOVE_TYPE_TAKE && READ_CAPTURE(move) == 0)
@@ -56,23 +54,10 @@ MoveList Figure::getAvailibleMoves(const Position& position, int type)
 				capture = position.getFigureOnSquare(to, oppositeColor);
 
 				move = CreateListItem(from, to, name_, capture, MOVE_TYPE_TAKE, color_);
-				if (move == 4469212)
-				{ 
-					ShowListItem(move);
-
-					ShowBoardVector(position.getFigureFromCoord(), WHITE);
-					for (int i = PAWN; i <= KING; ++i)
-						ShowBits(position.getFigureBoard(i, WHITE));
-					cout << "black: " << endl;
-					for (int i = PAWN; i <= KING; ++i)
-						ShowBits(position.getFigureBoard(i, BLACK));
-					ShowBoardVector(position.getFigureFromCoord(), BLACK);
-				}
 				if (position.isMoveLegal(move))
 					list += move;
 				captureMoves &= captureMoves - 1;
 			}
-
 			board &= board - 1;
 		}
 	}
@@ -90,68 +75,67 @@ U64 Figure::getAttackBoard(U64 blockers, U64 opposite)
 		square = BitScanForward(t_board);
 		RawMoves mb = getMoveBoards(square, blockers, opposite);
 		attacks |= mb.silents | mb.takes;
-		//attacks |= getMoveBoards(square, blockers, opposite).silents;// | getMoveBoards(square, blockers, opposite).takes;
 
 		t_board &= t_board - 1;
 	}
 	return attacks;
 }
 
-void Figure::setBoard(U64 board)
-{
-	board_ = board;
-}
+//void Figure::setBoard(U64 board)
+//{
+//	board_ = board;
+//}
+//
+//void Figure::setColor(int color)
+//{
+//	color_ = color;
+//}
+//
+//void Figure::setCount(int count)
+//{
+//	nFigures_ = count;
+//}
 
-void Figure::setColor(int color)
-{
-	color_ = color;
-}
-
-void Figure::setCount(int count)
-{
-	nFigures_ = count;
-}
-
-void Figure::setPrioritySquares(vector<int>* prioritySquares)
-{
-	prioritySquares_ = prioritySquares;
-}
+//void Figure::setPrioritySquares(vector<int>* prioritySquares)
+//{
+//	prioritySquares_ = prioritySquares;
+//}
 
 
-int Figure::getName()
-{
-	return name_;
-}
+//int Figure::getName()
+//{
+//	return name_;
+//}
+//
+//U64 Figure::getBoard()
+//{
+//	return board_;
+//}
+//
+//U64 Figure::getColor()
+//{
+//	return color_;
+//}
+//
+//int Figure::getCount()
+//{
+//	return nFigures_;
+//}
+//
+//int Figure::getCost()
+//{
+//	return pieceCost_;
+//}
+//
+//int Figure::getPriorityEvalOnSquare(int square)
+//{
+//	return (*prioritySquares_)[square];
+//}
 
-U64 Figure::getBoard()
-{
-	return board_;
-}
-
-U64 Figure::getColor()
-{
-	return color_;
-}
-
-int Figure::getCount()
-{
-	return nFigures_;
-}
-
-int Figure::getCost()
-{
-	return pieceCost_;
-}
-
-int Figure::getPriorityEvalOnSquare(int square)
-{
-	return (*prioritySquares_)[square];
-}
-
-const vector<int>& Figure::getPrioritySquares()
-{
-	return *prioritySquares_;
-}
+//const vector<int>& Figure::getPrioritySquares()
+//{
+//	return *prioritySquares_;
+//}
 
 bool Figure::moveFigure(int old_coordinates, int new_coordinates)
 {
@@ -231,16 +215,6 @@ int Figure::getMobility(U64 blockers, U64 opposite)
 		U64 moves = getMoveBoards(squares[i], blockers, opposite).silents;
 		mobility += CountHighBits(moves);
 	}
-	//while (t_board)
-	//{
-	//	square = BitScanForward(t_board);
-	//	RawMoves moves = getMoveBoards(square, blockers, opposite);
-	//	
-	//	mobility += moves.getMovesCount(MOVE_TYPE_SILENT);
-
-	//	t_board &= t_board - 1;
-	//}
-
 	return mobility;
 }
 
@@ -303,8 +277,6 @@ MoveList Pawn::getAvailibleMoves(const Position& position, int type)
 
 	U64 pawns = board_;
 
-	//U64 blockers = getBlockerPieces(position);
-	//U64 opposite = getOppositePieces(position);
 	U64 blockers = position.getSideBoard(color_);
 	U64 opposite = position.getSideBoard(oppositeColor);
 
@@ -352,8 +324,6 @@ MoveList Pawn::getAvailibleMoves(const Position& position, int type)
 				}
 				else {
 					move = CreateListItem(from, to, PAWN, 0, MOVE_TYPE_SILENT, color_);
-					if (move == 18227190)
-						cout << "";
 					if (position.isMoveLegal(move))
 						list += move;
 					if (READ_MOVE_TYPE(move) == MOVE_TYPE_TAKE && READ_CAPTURE(move) == 0)
@@ -387,9 +357,6 @@ MoveList Pawn::getAvailibleMoves(const Position& position, int type)
 				else
 				{
 					move = CreateListItem(from, to, PAWN, capture, MOVE_TYPE_TAKE, color_);
-					if (move == 4469212)
-						cout << "";
-					int n = READ_FIGURE(move);
 					if (position.isMoveLegal(move))
 						list += move;
 					if (READ_MOVE_TYPE(move) == MOVE_TYPE_TAKE && READ_CAPTURE(move) == 0)
